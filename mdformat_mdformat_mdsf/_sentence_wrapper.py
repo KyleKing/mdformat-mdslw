@@ -35,7 +35,7 @@ def get_max_line_width(options: ContextOptions) -> int:
 
 def wrap_sentences(
     text: str,
-    node: RenderTreeNode,
+    _node: RenderTreeNode,
     context: RenderContext,
 ) -> str:
     """Wrap text by inserting line breaks after sentences.
@@ -47,7 +47,7 @@ def wrap_sentences(
 
     Args:
         text: The rendered text to process
-        node: The syntax tree node being rendered
+        _node: The syntax tree node being rendered (unused)
         context: The rendering context
 
     Returns:
@@ -70,7 +70,7 @@ def wrap_sentences(
     # Pattern: (marker)(optional closing chars)(whitespace)
     pattern = r"([" + marker_class + r"])(\s*[\"'\)\]\}]*)\s+"
 
-    def replace_with_newline(match: re.Match) -> str:
+    def replace_with_newline(match: re.Match[str]) -> str:
         """Replace sentence ending with newline."""
         marker = match.group(1)
         closing = match.group(2)
@@ -89,7 +89,7 @@ def wrap_sentences(
             else:
                 # Simple word-wrap for long lines
                 words = line.split()
-                current_line = []
+                current_line: list[str] = []
                 current_length = 0
 
                 for word in words:

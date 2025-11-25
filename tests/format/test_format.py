@@ -16,6 +16,35 @@ def flatten(nested_list: list[list[T]]) -> list[T]:
     return [*chain(*nested_list)]
 
 
+def _read_lines_until_delimiter(lines: list[str], start: int) -> tuple[list[str], int]:
+    """Read lines until '.' delimiter or end of file."""
+    result = []
+    i = start
+    while i < len(lines) and lines[i] != ".":
+        result.append(lines[i])
+        i += 1
+    return result, i
+
+
+def _parse_fixture_options(lines: list[str], start: int) -> tuple[dict, int]:
+    """Parse options from fixture lines starting with '--'."""
+    options = {}
+    i = start
+    while i < len(lines):
+        line = lines[i].strip()
+        if not line:
+            i += 1
+            break
+        if line.startswith("--"):
+            if line == "--wrap-sentences":
+                options["wrap_sentences"] = True
+            i += 1
+        else:
+            # This is the next title, don't advance i
+            break
+    return options, i
+
+
 def read_fixtures_with_options(filepath: Path) -> list[tuple[int, str, str, str, dict]]:
     """Read test fixtures and parse options from the file.
 
@@ -37,7 +66,7 @@ def read_fixtures_with_options(filepath: Path) -> list[tuple[int, str, str, str,
 
     """
     fixtures = []
-    lines = filepath.read_text().splitlines()
+    lines = filepath.read_text(encoding="utf-8").splitlines()
 
     i = 0
     while i < len(lines):
@@ -58,10 +87,7 @@ def read_fixtures_with_options(filepath: Path) -> list[tuple[int, str, str, str,
         i += 1
 
         # Read input until .
-        input_lines = []
-        while i < len(lines) and lines[i] != ".":
-            input_lines.append(lines[i])
-            i += 1
+        input_lines, i = _read_lines_until_delimiter(lines, i)
 
         # Expect .
         if i >= len(lines):
@@ -69,38 +95,25 @@ def read_fixtures_with_options(filepath: Path) -> list[tuple[int, str, str, str,
         i += 1
 
         # Read expected until .
-        expected_lines = []
-        while i < len(lines) and lines[i] != ".":
-            expected_lines.append(lines[i])
-            i += 1
+        expected_lines, i = _read_lines_until_delimiter(lines, i)
 
         # Expect .
         if i >= len(lines):
             break
         i += 1
 
-        # Read options until next title or empty line
-        options = {}
-        while i < len(lines):
-            line = lines[i].strip()
-            if not line:
-                i += 1
-                break
-            if line.startswith("--"):
-                if line == "--wrap-sentences":
-                    options["wrap_sentences"] = True
-                i += 1
-            else:
-                # This is the next title, don't advance i
-                break
+        # Read options
+        options, i = _parse_fixture_options(lines, i)
 
-        fixtures.append((
-            line_number,
-            title,
-            "\n".join(input_lines) + "\n" if input_lines else "",
-            "\n".join(expected_lines) + "\n" if expected_lines else "",
-            options,
-        ))
+        fixtures.append(
+            (
+                line_number,
+                title,
+                "\n".join(input_lines) + "\n" if input_lines else "",
+                "\n".join(expected_lines) + "\n" if expected_lines else "",
+                options,
+            )
+        )
 
     return fixtures
 
@@ -119,6 +132,6 @@ fixtures = flatten(
     ids=[f[1] for f in fixtures],
 )
 def test_format_fixtures(line, title, text, expected, options):
-    output = mdformat.text(text, extensions={"mdslw"}, options=options)
+    output = mdformat.text(text, extensions={"mdformat_mdsf"}, options=options)
     print_text(output, expected)
     assert output.rstrip() == expected.rstrip()
