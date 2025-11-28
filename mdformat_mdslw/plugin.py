@@ -1,4 +1,9 @@
-"""Public Extension for mdslw-style sentence wrapping."""
+"""Public Extension for mdslw-style sentence wrapping.
+
+This module provides the mdformat plugin interface for sentence wrapping
+functionality. It registers CLI arguments and postprocessors that wrap
+text by inserting line breaks after sentence-ending punctuation.
+"""
 
 from __future__ import annotations
 
@@ -14,7 +19,10 @@ from ._sentence_wrapper import wrap_sentences
 def add_cli_argument_group(group: argparse._ArgumentGroup) -> None:
     """Add options to the mdformat CLI.
 
-    Stored in `mdit.options["mdformat"]["plugin"]["mdslw"]`
+    Configuration is stored in `mdit.options["mdformat"]["plugin"]["mdslw"]`
+
+    Args:
+        group: Argument group to add options to
 
     """
     group.add_argument(
@@ -38,19 +46,24 @@ def add_cli_argument_group(group: argparse._ArgumentGroup) -> None:
 
 
 def update_mdit(mdit: MarkdownIt) -> None:
-    """Update the parser.
+    """Update the markdown-it parser.
 
-    mdslw doesn't add new syntax, so no parser modifications needed.
-    All functionality is implemented via postprocessors.
+    The mdslw plugin doesn't add new markdown syntax, so no parser
+    modifications are needed. All functionality is implemented via
+    postprocessors that run after rendering.
+
+    Args:
+        mdit: The markdown-it parser instance (unused)
 
     """
     # No markdown-it plugins needed for sentence wrapping
+    # This function is required by mdformat's plugin interface
 
 
 # A mapping from syntax tree node type to a function that renders it.
 # This can be used to overwrite renderer functions of existing syntax
 # or add support for new syntax.
-# mdslw doesn't need custom renderers, only postprocessors.
+# The mdslw plugin doesn't need custom renderers, only postprocessors.
 RENDERERS: Mapping[str, Render] = {}
 
 # A mapping from `RenderTreeNode.type` to a `Postprocess` that does
@@ -59,7 +72,8 @@ RENDERERS: Mapping[str, Render] = {}
 # plugins can define a postprocessor for a syntax type and all of them
 # will run in series.
 #
-# Apply sentence wrapping to paragraphs and other text-containing nodes
+# Apply sentence wrapping to paragraphs and other text-containing nodes.
+# The postprocessor is only active when --wrap-sentences is enabled.
 POSTPROCESSORS: Mapping[str, Postprocess] = {
     "paragraph": wrap_sentences,
 }

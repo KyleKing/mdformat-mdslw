@@ -1,12 +1,44 @@
-# mdformat-mdformat-mdsf
+# mdformat-mdslw
 
 [![Build Status][ci-badge]][ci-link] [![PyPI version][pypi-badge]][pypi-link]
 
-An [mdformat](https://github.com/executablebooks/mdformat) plugin for `<placeholder>`
+An [mdformat](https://github.com/executablebooks/mdformat) plugin for [mdslw](https://github.com/razziel89/mdslw)-style sentence wrapping.
+
+This plugin wraps markdown text by inserting line breaks after sentence-ending punctuation, making diffs cleaner and easier to review.
+
+## Features
+
+- Wrap sentences at configurable punctuation marks (default: `.!?:`)
+- Optional maximum line width enforcement
+- Preserves markdown formatting (bold, italic, links, etc.)
+- Handles edge cases: quoted text, parentheses, brackets
 
 ## `mdformat` Usage
 
 Add this package wherever you use `mdformat` and the plugin will be auto-recognized. No additional configuration necessary. See [additional information on `mdformat` plugins here](https://mdformat.readthedocs.io/en/stable/users/plugins.html)
+
+### CLI
+
+```sh
+mdformat --wrap-sentences document.md
+```
+
+#### Options
+
+- `--wrap-sentences`: Enable sentence wrapping (required to activate the plugin)
+- `--sentence-markers TEXT`: Characters that mark sentence endings (default: `.!?:`)
+- `--max-line-width INTEGER`: Maximum line width for wrapping (default: 80, 0 to disable)
+
+### Configuration File
+
+Create a `.mdformat.toml` file in your project root:
+
+```toml
+[plugin.mdslw]
+wrap_sentences = true
+sentence_markers = ".!?:"
+max_line_width = 80
+```
 
 ### pre-commit / prek
 
@@ -17,46 +49,65 @@ repos:
     hooks:
       - id: mdformat
         additional_dependencies:
-          - mdformat-mdformat-mdsf
+          - mdformat-mdslw
+        args: [--wrap-sentences]
 ```
 
 ### uvx
 
 ```sh
-uvx --with mdformat-mdformat-mdsf mdformat
+uvx --with mdformat-mdslw mdformat --wrap-sentences document.md
 ```
 
 Or with pipx:
 
 ```sh
 pipx install mdformat
-pipx inject mdformat mdformat-mdformat-mdsf
+pipx inject mdformat mdformat-mdslw
+mdformat --wrap-sentences document.md
 ```
 
-## HTML Rendering
+### Python API
 
-To generate HTML output, `mdformat_mdsf_plugin` can be imported from `mdit_plugins`. For more guidance on `MarkdownIt`, see the docs: <https://markdown-it-py.readthedocs.io/en/latest/using.html#the-parser>
+```python
+import mdformat
 
-```py
-from markdown_it import MarkdownIt
+text = """
+This is a test. It has multiple sentences! Does it work?
+"""
 
-from mdformat_mdformat_mdsf.mdit_plugins import mdformat_mdsf_plugin
+# Enable sentence wrapping
+result = mdformat.text(text, extensions={"mdslw"}, options={"wrap_sentences": True})
 
-md = MarkdownIt()
-md.use(mdformat_mdsf_plugin)
+print(result)
+# Output:
+# This is a test.
+# It has multiple sentences!
+# Does it work?
+```
 
-text = "... markdown example ..."
-md.render(text)
-# <div>
-#
-# </div>
+## Example
+
+**Input:**
+
+```markdown
+This is a long sentence. It contains multiple clauses! Does it work? Yes it does.
+```
+
+**Output (with `--wrap-sentences`):**
+
+```markdown
+This is a long sentence.
+It contains multiple clauses!
+Does it work?
+Yes it does.
 ```
 
 ## Contributing
 
-See [CONTRIBUTING.md](https://github.com/kyleking/mdformat-mdformat-mdsf/blob/main/CONTRIBUTING.md)
+See [CONTRIBUTING.md](https://github.com/kyleking/mdformat-mdslw/blob/main/CONTRIBUTING.md)
 
-[ci-badge]: https://github.com/kyleking/mdformat-mdformat-mdsf/actions/workflows/tests.yml/badge.svg?branch=main
-[ci-link]: https://github.com/kyleking/mdformat-mdformat-mdsf/actions?query=workflow%3ACI+branch%3Amain+event%3Apush
-[pypi-badge]: https://img.shields.io/pypi/v/mdformat-mdformat-mdsf.svg
-[pypi-link]: https://pypi.org/project/mdformat-mdformat-mdsf
+[ci-badge]: https://github.com/kyleking/mdformat-mdslw/actions/workflows/tests.yml/badge.svg?branch=main
+[ci-link]: https://github.com/kyleking/mdformat-mdslw/actions?query=workflow%3ACI+branch%3Amain+event%3Apush
+[pypi-badge]: https://img.shields.io/pypi/v/mdformat-mdslw.svg
+[pypi-link]: https://pypi.org/project/mdformat-mdslw

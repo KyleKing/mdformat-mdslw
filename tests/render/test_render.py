@@ -7,12 +7,13 @@ from markdown_it.utils import read_fixture_file
 from tests.helpers import print_text
 
 FIXTURE_PATH = Path(__file__).parent / "fixtures"
+_FIXTURES = read_fixture_file(FIXTURE_PATH / "mdslw.md")
 
 
 @pytest.mark.parametrize(
     ("line", "title", "text", "expected"),
-    read_fixture_file(FIXTURE_PATH / "mdformat_mdsf.md"),
-    ids=[f[1] for f in read_fixture_file(FIXTURE_PATH / "mdformat_mdsf.md")],
+    _FIXTURES,
+    ids=[f[1] for f in _FIXTURES],
 )
 def test_render(line, title, text, expected):
     """Test HTML rendering.

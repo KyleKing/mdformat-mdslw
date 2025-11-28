@@ -16,17 +16,17 @@ dependencies = [
   "mdformat >= 0.7.19",
   "mdit-py-plugins >= 0.4.1",
 ]
-description = "An mdformat plugin for mdformat_mdsf"
+description = "An mdformat plugin for mdslw"
 keywords = ["markdown", "markdown-it", "mdformat", "mdformat_plugin_template"]
 license = "MIT"
 license-files = ["LICENSE"]
-name = "mdformat_mdformat_mdsf"
+name = "mdformat_mdslw"
 readme = "README.md"
 requires-python = ">=3.10.0"
 version = "0.0.1"
 
 [project.entry-points."mdformat.parser_extension"]
-mdformat_mdsf = "mdformat_mdformat_mdsf"
+mdslw = "mdformat_mdslw"
 
 [project.optional-dependencies]
 test = [
@@ -36,21 +36,21 @@ test = [
 ]
 
 [project.urls]
-"Bug Tracker" = "https://github.com/kyleking/mdformat-mdformat-mdsf/issues"
-"Changelog" = "https://github.com/kyleking/mdformat-mdformat-mdsf/releases"
-homepage = "https://github.com/kyleking/mdformat-mdformat-mdsf"
+"Bug Tracker" = "https://github.com/kyleking/mdformat-mdslw/issues"
+"Changelog" = "https://github.com/kyleking/mdformat-mdslw/releases"
+homepage = "https://github.com/kyleking/mdformat-mdslw"
 
 [tool.commitizen]
 tag_format = "v${version}"
 version = "0.0.1"
-version_files = ["mdformat_mdformat_mdsf/__init__.py", "pyproject.toml:^version"]
+version_files = ["mdformat_mdslw/__init__.py", "pyproject.toml:^version"]
 
 [tool.mypy]
 check_untyped_defs = true
 disallow_any_generics = true
 enable_error_code = ["ignore-without-code", "possibly-undefined", "redundant-expr", "truthy-bool"]
 extra_checks = true
-files = ["mdformat_mdformat_mdsf", "tests"]
+files = ["mdformat_mdslw", "tests"]
 no_implicit_reexport = true
 python_version = "3.10"
 show_column_numbers = true
@@ -63,7 +63,7 @@ warn_unused_configs = true
 warn_unused_ignores = true
 
 [tool.pyright]
-include = ["mdformat_mdformat_mdsf", "tests"]
+include = ["mdformat_mdslw", "tests"]
 pythonVersion = "3.10"
 
 [tool.pytest-watcher]
@@ -72,7 +72,7 @@ now = true
 patterns = ["*.ambr", "*.md", "*.py"]
 runner = "tox"
 # PLANNED: requires support for TYPE_CHECKING https://github.com/beartype/beartype/issues/477
-# runner_args = ["-e", "test", "--", "--exitfirst", "--failed-first", "--new-first", "-vv", "--beartype-packages=mdformat_mdformat_mdsf"]
+# runner_args = ["-e", "test", "--", "--exitfirst", "--failed-first", "--new-first", "-vv", "--beartype-packages=mdformat_mdslw"]
 runner_args = ["-e", "test", "--", "--exitfirst", "--failed-first", "--new-first", "-vv"]
 
 [tool.ruff]
@@ -90,8 +90,11 @@ ignore = [
   'CPY001', # Missing copyright notice at top of file
   'D203', # "1 blank line required before class docstring" (Conflicts with D211)
   'D213', # "Multi-line docstring summary should start at the second line" (Conflicts with D212)
+  'DOC102', # Documented parameter is not in function signature (false positives for raise-via-helper)
   'DOC201', # `return` is not documented in docstring
   'DOC402', # `yield` is not documented in docstring
+  'DOC501', # Raised exception missing from docstring (false positives for exceptions raised in helper functions)
+  'DOC502', # Raised exception is not explicitly raised (false positives for exceptions raised in helper functions)
   'E501', # Line too long (89 > 88)
   'EM101', # Exception must not use a string literal, assign to variable first
   'FBT001', # Boolean-typed positional argument in function definition
@@ -116,7 +119,7 @@ unfixable = [
 ]
 
 [tool.ruff.lint.isort]
-known-first-party = ['mdformat_mdformat_mdsf', 'tests']
+known-first-party = ['mdformat_mdslw', 'tests']
 
 [tool.ruff.lint.per-file-ignores]
 '__init__.py' = [
@@ -186,20 +189,20 @@ skip_install = true
 
 [tool.tox.env.test]
 basepython = ["py314"]
-commands = [["pytest", "--cov=mdformat_mdformat_mdsf", {default = [], extend = true, replace = "posargs"}]]
+commands = [["pytest", "--cov=mdformat_mdslw", {default = [], extend = true, replace = "posargs"}]]
 # PLANNED: requires support for TYPE_CHECKING https://github.com/beartype/beartype/issues/477
-# description = "Optionally, specify: '-- --exitfirst --failed-first --new-first -vv --beartype-packages=mdformat_mdformat_mdsf"
+# description = "Optionally, specify: '-- --exitfirst --failed-first --new-first -vv --beartype-packages=mdformat_mdslw"
 description = "Optionally, specify: '-- --exitfirst --failed-first --new-first -vv"
 extras = ["test"]
 
 [tool.tox.env."test-min"]
 basepython = ["py310"]
-commands = [["pytest", "--cov=mdformat_mdformat_mdsf"]]
+commands = [["pytest", "--cov=mdformat_mdslw"]]
 extras = ["test"]
 
 [tool.tox.env.type]
 basepython = ["py314"]
-commands = [["mypy", "./mdformat_mdformat_mdsf", {default = [], extend = true, replace = "posargs"}]]
+commands = [["mypy", "./mdformat_mdslw", {default = [], extend = true, replace = "posargs"}]]
 deps = ["mypy>=1.18.2"]
 
 [tool.tox.env_run_base]

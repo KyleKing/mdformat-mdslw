@@ -121,7 +121,7 @@ def read_fixtures_with_options(filepath: Path) -> list[tuple[int, str, str, str,
 fixtures = flatten(
     [
         read_fixtures_with_options(Path(__file__).parent / "fixtures" / fixture_path)
-        for fixture_path in ("mdformat_mdsf.md",)
+        for fixture_path in ("mdslw.md",)
     ],
 )
 
@@ -132,6 +132,6 @@ fixtures = flatten(
     ids=[f[1] for f in fixtures],
 )
 def test_format_fixtures(line, title, text, expected, options):
-    output = mdformat.text(text, extensions={"mdformat_mdsf"}, options=options)
+    output = mdformat.text(text, extensions={"mdslw"}, options=options)
     print_text(output, expected)
     assert output.rstrip() == expected.rstrip()
