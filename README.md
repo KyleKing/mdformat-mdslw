@@ -45,18 +45,17 @@ max_line_width = 80
 ```yaml
 repos:
   - repo: https://github.com/executablebooks/mdformat
-    rev: 0.7.19
+    rev: 1.0.0
     hooks:
       - id: mdformat
         additional_dependencies:
           - mdformat-mdslw
-        args: [--wrap-sentences]
 ```
 
 ### uvx
 
 ```sh
-uvx --with mdformat-mdslw mdformat --wrap-sentences document.md
+uvx --with mdformat-mdslw mdformat
 ```
 
 Or with pipx:
