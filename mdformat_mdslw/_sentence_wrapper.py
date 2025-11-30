@@ -8,6 +8,7 @@ import re
 from typing import TYPE_CHECKING
 
 from ._helpers import get_conf
+from ._language_data import DEFAULT_LANG, LANG_SUPPRESSIONS
 
 logger = logging.getLogger(__name__)
 
@@ -118,6 +119,69 @@ def get_mdslw_wrap_width(options: ContextOptions) -> int:
     return int(wrap_width) if wrap_width is not None else 0
 
 
+def _get_suppression_words(options: ContextOptions) -> set[str]:
+    """Build complete set of words that suppress sentence wrapping.
+
+    Combines language-specific defaults with custom suppressions/ignores.
+    Handles case sensitivity based on configuration.
+
+    Args:
+        options: Configuration options from mdformat context
+
+    Returns:
+        Set of words that should not trigger sentence breaks
+
+    """
+    mode = get_conf(options, "abbreviations_mode")
+    if mode is None:
+        mode = "default"
+    mode = str(mode)
+
+    # Mode: off - disable all abbreviation detection
+    if mode == "off":
+        return set()
+
+    # Start with language-specific defaults
+    words: set[str] = set()
+    if mode in {"default", "extend"}:
+        lang_str = get_conf(options, "lang")
+        langs = str(lang_str).split() if lang_str else [DEFAULT_LANG]
+        for lang in langs:
+            words.update(LANG_SUPPRESSIONS.get(lang, []))
+
+    # Handle custom abbreviations
+    custom = get_conf(options, "abbreviations")
+    if custom:
+        # Parse custom abbreviations (comma-separated string)
+        custom_words = str(custom).split(",")
+        custom_words = [w.strip() for w in custom_words]
+
+        if mode == "override":
+            words = set(custom_words)
+        else:  # extend or default mode
+            words.update(custom_words)
+
+    # Add extra suppressions
+    suppressions = get_conf(options, "suppressions")
+    if suppressions:
+        supp_words = str(suppressions).split()
+        words.update(supp_words)
+
+    # Remove ignored words
+    ignores = get_conf(options, "ignores")
+    if ignores:
+        ignore_words = str(ignores).split()
+        words -= set(ignore_words)
+
+    # Handle case sensitivity
+    case_sensitive = get_conf(options, "case_sensitive")
+    if not case_sensitive:
+        # Convert to lowercase for case-insensitive matching
+        words = {w.lower() for w in words}
+
+    return words
+
+
 def _wrap_long_line(line: str, max_width: int) -> list[str]:
     """Wrap a single long line into multiple lines.
 
@@ -158,7 +222,7 @@ def _wrap_long_line(line: str, max_width: int) -> list[str]:
     return wrapped_lines
 
 
-def wrap_sentences(
+def wrap_sentences(  # noqa: C901
     text: str,
     _node: RenderTreeNode,
     context: RenderContext,
@@ -169,6 +233,7 @@ def wrap_sentences(
     - Insert line breaks after sentence-ending punctuation
     - Optionally wrap long lines using --mdslw-wrap setting
     - Preserve existing formatting for code blocks and special syntax
+    - Respect abbreviations and suppression words
 
     Note: The _node parameter is required by mdformat's postprocessor
     interface but is not used in this implementation.
@@ -204,18 +269,47 @@ def wrap_sentences(
 
     sentence_markers = get_sentence_markers(context.options)
     wrap_width = get_mdslw_wrap_width(context.options)
+    suppression_words = _get_suppression_words(context.options)
+    case_sensitive = get_conf(context.options, "case_sensitive")
 
-    # Get or compile cached regex pattern
-    pattern = _compile_sentence_pattern(sentence_markers)
+    # Pattern to find potential sentence boundaries
+    marker_class = re.escape(sentence_markers)
+    # Match: marker + optional closing chars + whitespace
+    boundary_pattern = re.compile(r"([" + marker_class + r"])(\s*[\"'\)\]\}]*)\s+")
 
     def _replace_with_newline(match: re.Match[str]) -> str:
-        """Replace sentence ending with newline."""
-        marker = match.group(1)
-        closing = match.group(2)
+        """Replace sentence ending with newline, checking suppressions."""
+        marker = match.group(1)  # Sentence marker
+        closing = match.group(2)  # Closing chars
+
+        # Get text before this match to check for suppression words
+        start_pos = match.start()
+        text_before = text[:start_pos]
+
+        # Check if any suppression word appears at the end of text_before
+        if suppression_words:
+            for supp_word in suppression_words:
+                # Build pattern to check if suppression word appears before marker
+                # Handle both "word." and "word" cases
+                if case_sensitive:
+                    check_pattern = re.escape(supp_word)
+                else:
+                    check_pattern = re.escape(supp_word)
+
+                # Check if text_before ends with this suppression word
+                # Allow for period-separated abbreviations like "p.m"
+                pattern_to_check = r"\b" + check_pattern.replace(r"\.", r"\.") + r"$"
+                if case_sensitive:
+                    if re.search(pattern_to_check, text_before):
+                        return match.group(0)
+                elif re.search(pattern_to_check, text_before, re.IGNORECASE):
+                    return match.group(0)
+
+        # No suppression match - wrap with newline
         return f"{marker}{closing}\n"
 
     # Apply sentence breaks
-    wrapped = pattern.sub(_replace_with_newline, text)
+    wrapped = boundary_pattern.sub(_replace_with_newline, text)
 
     # Optional: wrap long lines using --mdslw-wrap setting
     if wrap_width > 0:

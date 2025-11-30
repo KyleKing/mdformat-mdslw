@@ -47,6 +47,49 @@ def add_cli_argument_group(group: argparse._ArgumentGroup) -> None:
         help="Wrap lines at specified width (default: 0 = disabled). "
         "Use with --wrap=keep to disable mdformat's wrapping.",
     )
+    group.add_argument(
+        "--mdslw-lang",
+        type=str,
+        dest="lang",
+        default="ac",
+        help="Space-separated language codes for abbreviation lists "
+        "(default: ac). Supported: ac, en, de, es, fr, it",
+    )
+    group.add_argument(
+        "--mdslw-abbreviations-mode",
+        type=str,
+        dest="abbreviations_mode",
+        choices=["default", "off", "extend", "override"],
+        default="default",
+        help="Abbreviation detection mode: default (use built-in lists), "
+        "off (disable), extend (add custom to built-in), "
+        "override (replace built-in with custom)",
+    )
+    group.add_argument(
+        "--mdslw-abbreviations",
+        type=str,
+        dest="abbreviations",
+        help="Comma-separated custom abbreviations to extend or override defaults",
+    )
+    group.add_argument(
+        "--mdslw-suppressions",
+        type=str,
+        dest="suppressions",
+        help="Space-separated words to add to suppression list",
+    )
+    group.add_argument(
+        "--mdslw-ignores",
+        type=str,
+        dest="ignores",
+        help="Space-separated words to remove from suppression list",
+    )
+    group.add_argument(
+        "--mdslw-case-sensitive",
+        action="store_const",
+        const=True,
+        dest="case_sensitive",
+        help="Enable case-sensitive abbreviation matching (default: case-insensitive)",
+    )
 
 
 def update_mdit(mdit: MarkdownIt) -> None:

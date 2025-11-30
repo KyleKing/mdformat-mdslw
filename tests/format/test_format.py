@@ -26,7 +26,7 @@ def _read_lines_until_delimiter(lines: list[str], start: int) -> tuple[list[str]
     return result, i
 
 
-def _parse_fixture_options(lines: list[str], start: int) -> tuple[dict, int]:
+def _parse_fixture_options(lines: list[str], start: int) -> tuple[dict, int]:  # noqa: C901, PLR0912, PLR0915
     """Parse options from fixture lines starting with '--'."""
     options = {}
     i = start
@@ -36,8 +36,56 @@ def _parse_fixture_options(lines: list[str], start: int) -> tuple[dict, int]:
             i += 1
             break
         if line.startswith("--"):
-            if line == "--no-wrap-sentences":
-                options["no_wrap_sentences"] = True
+            # Parse multiple options on the same line
+            parts = []
+            current = []
+            in_quotes = False
+            for char in line:
+                if char == '"':
+                    in_quotes = not in_quotes
+                    current.append(char)
+                elif char == " " and not in_quotes:
+                    if current:
+                        parts.append("".join(current))
+                        current = []
+                else:
+                    current.append(char)
+            if current:
+                parts.append("".join(current))
+
+            # Process each part
+            j = 0
+            while j < len(parts):
+                part = parts[j]
+                if part == "--no-wrap-sentences":
+                    options["no_wrap_sentences"] = True
+                    j += 1
+                elif part == "--mdslw-abbreviations-mode":
+                    if j + 1 < len(parts):
+                        options["abbreviations_mode"] = parts[j + 1]
+                        j += 2
+                elif part == "--mdslw-abbreviations":
+                    if j + 1 < len(parts):
+                        value = parts[j + 1].strip('"')
+                        options["abbreviations"] = value
+                        j += 2
+                elif part == "--mdslw-lang":
+                    if j + 1 < len(parts):
+                        options["lang"] = parts[j + 1].strip('"')
+                        j += 2
+                elif part == "--mdslw-suppressions":
+                    if j + 1 < len(parts):
+                        options["suppressions"] = parts[j + 1].strip('"')
+                        j += 2
+                elif part == "--mdslw-ignores":
+                    if j + 1 < len(parts):
+                        options["ignores"] = parts[j + 1].strip('"')
+                        j += 2
+                elif part == "--mdslw-case-sensitive":
+                    options["case_sensitive"] = True
+                    j += 1
+                else:
+                    j += 1
             i += 1
         else:
             # This is the next title, don't advance i
@@ -121,7 +169,7 @@ def read_fixtures_with_options(filepath: Path) -> list[tuple[int, str, str, str,
 fixtures = flatten(
     [
         read_fixtures_with_options(Path(__file__).parent / "fixtures" / fixture_path)
-        for fixture_path in ("mdslw.md",)
+        for fixture_path in ("mdslw.md", "abbreviations.md")
     ],
 )
 
