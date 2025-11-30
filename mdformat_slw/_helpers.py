@@ -15,7 +15,7 @@ def get_conf(options: ContextOptions, key: str) -> bool | str | int | None:
 
     Configuration can be provided via:
     1. API call: mdformat.text(..., options={key: value})
-    2. CLI/TOML: stored in options["mdformat"]["plugin"]["mdslw"][key]
+    2. CLI/TOML: stored in options["mdformat"]["plugin"]["slw"][key]
 
     Args:
         options: Configuration options from mdformat rendering context

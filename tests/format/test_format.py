@@ -60,33 +60,33 @@ def _parse_fixture_options(lines: list[str], start: int) -> tuple[dict, int]:  #
                 if part == "--no-wrap-sentences":
                     options["no_wrap_sentences"] = True
                     j += 1
-                elif part == "--mdslw-abbreviations-mode":
+                elif part == "--slw-abbreviations-mode":
                     if j + 1 < len(parts):
                         options["abbreviations_mode"] = parts[j + 1]
                         j += 2
-                elif part == "--mdslw-abbreviations":
+                elif part == "--slw-abbreviations":
                     if j + 1 < len(parts):
                         value = parts[j + 1].strip('"')
                         options["abbreviations"] = value
                         j += 2
-                elif part == "--mdslw-lang":
+                elif part == "--slw-lang":
                     if j + 1 < len(parts):
                         options["lang"] = parts[j + 1].strip('"')
                         j += 2
-                elif part == "--mdslw-suppressions":
+                elif part == "--slw-suppressions":
                     if j + 1 < len(parts):
                         options["suppressions"] = parts[j + 1].strip('"')
                         j += 2
-                elif part == "--mdslw-ignores":
+                elif part == "--slw-ignores":
                     if j + 1 < len(parts):
                         options["ignores"] = parts[j + 1].strip('"')
                         j += 2
-                elif part == "--mdslw-case-sensitive":
+                elif part == "--slw-case-sensitive":
                     options["case_sensitive"] = True
                     j += 1
-                elif part == "--mdslw-wrap":
+                elif part == "--slw-wrap":
                     if j + 1 < len(parts):
-                        options["mdslw_wrap"] = int(parts[j + 1])
+                        options["slw_wrap"] = int(parts[j + 1])
                         j += 2
                 else:
                     j += 1
@@ -174,7 +174,7 @@ fixtures = flatten(
     [
         read_fixtures_with_options(Path(__file__).parent / "fixtures" / fixture_path)
         for fixture_path in (
-            "mdslw.md",
+            "slw.md",
             "abbreviations.md",
             "whitespace.md",
             "indentation.md",
@@ -190,6 +190,6 @@ fixtures = flatten(
     ids=[f[1] for f in fixtures],
 )
 def test_format_fixtures(line, title, text, expected, options):
-    output = mdformat.text(text, extensions={"mdslw"}, options=options)
+    output = mdformat.text(text, extensions={"slw"}, options=options)
     print_text(output, expected)
     assert output.rstrip() == expected.rstrip()

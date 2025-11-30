@@ -1,8 +1,8 @@
-# mdformat-mdslw
+# mdformat-slw
 
 [![Build Status][ci-badge]][ci-link] [![PyPI version][pypi-badge]][pypi-link]
 
-An [mdformat](https://github.com/executablebooks/mdformat) plugin for [mdslw](https://github.com/razziel89/mdslw)-style sentence wrapping.
+An [mdformat](https://github.com/executablebooks/mdformat) plugin for [slw](https://github.com/razziel89/slw)-style sentence wrapping.
 
 This plugin wraps markdown text by inserting line breaks after sentence-ending punctuation, making diffs cleaner and easier to review.
 
@@ -10,7 +10,7 @@ This plugin wraps markdown text by inserting line breaks after sentence-ending p
 
 - **Automatic sentence wrapping** at configurable punctuation marks (default: `.!?:`)
 - **Enabled by default** - no flags needed to activate
-- Optional maximum line width enforcement with `--mdslw-wrap`
+- Optional maximum line width enforcement with `--slw-wrap`
 - Preserves markdown formatting (bold, italic, links, etc.)
 - Handles edge cases: quoted text, parentheses, brackets
 
@@ -25,7 +25,7 @@ Add this package wherever you use `mdformat` and the plugin will be auto-recogni
 mdformat document.md
 
 # With line width enforcement
-mdformat document.md --mdslw-wrap 80 --wrap=keep
+mdformat document.md --slw-wrap 80 --wrap=keep
 
 # Disable sentence wrapping
 mdformat document.md --no-wrap-sentences
@@ -36,39 +36,39 @@ mdformat document.md --no-wrap-sentences
 **Basic Options:**
 
 - `--no-wrap-sentences`: Disable sentence wrapping (enabled by default)
-- `--mdslw-markers TEXT`: Characters that mark sentence endings (default: `.!?:`)
-- `--mdslw-wrap INTEGER`: Maximum line width for wrapping (default: 80)
+- `--slw-markers TEXT`: Characters that mark sentence endings (default: `.!?:`)
+- `--slw-wrap INTEGER`: Maximum line width for wrapping (default: 80)
 
 **Abbreviation Detection:**
 
-- `--mdslw-lang TEXT`: Space-separated language codes for abbreviation lists (default: `ac`)
+- `--slw-lang TEXT`: Space-separated language codes for abbreviation lists (default: `ac`)
     - Supported: `ac` (all-caps only), `en`, `de`, `es`, `fr`, `it`
-- `--mdslw-abbreviations-mode TEXT`: Abbreviation detection mode (default: `default`)
+- `--slw-abbreviations-mode TEXT`: Abbreviation detection mode (default: `default`)
     - `default`: Use built-in language lists
     - `off`: Disable abbreviation detection
     - `extend`: Add custom abbreviations to built-in lists
     - `override`: Replace built-in lists with custom abbreviations
-- `--mdslw-abbreviations TEXT`: Comma-separated custom abbreviations (e.g., `Dr.,Prof.,etc.`)
-- `--mdslw-suppressions TEXT`: Space-separated words to add to suppression list
-- `--mdslw-ignores TEXT`: Space-separated words to remove from suppression list
-- `--mdslw-case-sensitive`: Enable case-sensitive abbreviation matching (default: case-insensitive)
+- `--slw-abbreviations TEXT`: Comma-separated custom abbreviations (e.g., `Dr.,Prof.,etc.`)
+- `--slw-suppressions TEXT`: Space-separated words to add to suppression list
+- `--slw-ignores TEXT`: Space-separated words to remove from suppression list
+- `--slw-case-sensitive`: Enable case-sensitive abbreviation matching (default: case-insensitive)
 
-> **Note:** When using `--mdslw-wrap`, consider adding `--wrap=keep` to disable mdformat's built-in line wrapping and avoid conflicts.
+> **Note:** When using `--slw-wrap`, consider adding `--wrap=keep` to disable mdformat's built-in line wrapping and avoid conflicts.
 
 ### Configuration File
 
 Create a `.mdformat.toml` file in your project root:
 
 ```toml
-[plugin.mdslw]
+[plugin.slw]
 # Disable sentence wrapping (enabled by default)
 no_wrap_sentences = false
 
 # Customize sentence markers
-mdslw_markers = ".!?:"
+slw_markers = ".!?:"
 
 # Set line width wrapping (default: 80)
-mdslw_wrap = 80
+slw_wrap = 80
 
 # Configure abbreviation detection
 lang = "en de"  # Use English and German abbreviations
@@ -90,20 +90,20 @@ repos:
     hooks:
       - id: mdformat
         additional_dependencies:
-          - mdformat-mdslw
+          - mdformat-slw
 ```
 
 ### uvx
 
 ```sh
-uvx --with mdformat-mdslw mdformat
+uvx --with mdformat-slw mdformat
 ```
 
 Or with pipx:
 
 ```sh
 pipx install mdformat
-pipx inject mdformat mdformat-mdslw
+pipx inject mdformat mdformat-slw
 mdformat document.md
 ```
 
@@ -117,7 +117,7 @@ This is a test. It has multiple sentences! Does it work?
 """
 
 # Sentence wrapping enabled by default
-result = mdformat.text(text, extensions={"mdslw"})
+result = mdformat.text(text, extensions={"slw"})
 
 print(result)
 # Output:
@@ -128,14 +128,14 @@ print(result)
 # With line width wrapping
 result = mdformat.text(
     text,
-    extensions={"mdslw"},
-    options={"mdslw_wrap": 80}
+    extensions={"slw"},
+    options={"slw_wrap": 80}
 )
 
 # Disable sentence wrapping
 result = mdformat.text(
     text,
-    extensions={"mdslw"},
+    extensions={"slw"},
     options={"no_wrap_sentences": True}
 )
 ```
@@ -194,7 +194,7 @@ Done!
 
 ### Wrapping Rules
 
-When one of the limited number of characters (`.!?:` by default) which serve as end-of-sentence markers occur alone, mdformat-mdslw will wrap **except** when:
+When one of the limited number of characters (`.!?:` by default) which serve as end-of-sentence markers occur alone, mdformat-slw will wrap **except** when:
 
 1. Not in a context where auto-wrapping is possible:
     - Inline code, links, definition lists, etc.
@@ -204,9 +204,9 @@ When one of the limited number of characters (`.!?:` by default) which serve as 
 1. When the wrapped term is an abbreviation:
     - Multiple end-of-sentence markers occur (such as `p.m.` or `e.g.`)
     - Identified as an abbreviation from language-specific lists (`Dr.`, `Prof.`, `etc.`, etc.)
-    - Matched against custom abbreviations specified via `--mdslw-abbreviations`
-    - Part of user-specified suppression words via `--mdslw-suppressions`
-1. Abbreviation matching is case-insensitive by default (use `--mdslw-case-sensitive` to change)
+    - Matched against custom abbreviations specified via `--slw-abbreviations`
+    - Part of user-specified suppression words via `--slw-suppressions`
+1. Abbreviation matching is case-insensitive by default (use `--slw-case-sensitive` to change)
 
 ### Algorithm
 
@@ -217,9 +217,9 @@ When one of the limited number of characters (`.!?:` by default) which serve as 
 
 ## Contributing
 
-See [CONTRIBUTING.md](https://github.com/kyleking/mdformat-mdslw/blob/main/CONTRIBUTING.md)
+See [CONTRIBUTING.md](https://github.com/kyleking/mdformat-slw/blob/main/CONTRIBUTING.md)
 
-[ci-badge]: https://github.com/kyleking/mdformat-mdslw/actions/workflows/tests.yml/badge.svg?branch=main
-[ci-link]: https://github.com/kyleking/mdformat-mdslw/actions?query=workflow%3ACI+branch%3Amain+event%3Apush
-[pypi-badge]: https://img.shields.io/pypi/v/mdformat-mdslw.svg
-[pypi-link]: https://pypi.org/project/mdformat-mdslw
+[ci-badge]: https://github.com/kyleking/mdformat-slw/actions/workflows/tests.yml/badge.svg?branch=main
+[ci-link]: https://github.com/kyleking/mdformat-slw/actions?query=workflow%3ACI+branch%3Amain+event%3Apush
+[pypi-badge]: https://img.shields.io/pypi/v/mdformat-slw.svg
+[pypi-link]: https://pypi.org/project/mdformat-slw

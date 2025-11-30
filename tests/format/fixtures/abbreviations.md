@@ -41,7 +41,7 @@ Smith arrived.
 Prof.
 Johnson was there.
 .
---mdslw-abbreviations-mode off
+--slw-abbreviations-mode off
 
 custom abbreviations extend
 .
@@ -50,7 +50,7 @@ The company XYZ Corp. announced new products. The CEO Mr. Anderson attended!
 The company XYZ Corp. announced new products.
 The CEO Mr. Anderson attended!
 .
---mdslw-abbreviations-mode extend --mdslw-abbreviations "Corp,XYZ"
+--slw-abbreviations-mode extend --slw-abbreviations "Corp,XYZ"
 
 custom abbreviations override
 .
@@ -60,7 +60,7 @@ Dr.
 Smith arrived.
 But CustomAbbr. was preserved!
 .
---mdslw-abbreviations-mode override --mdslw-abbreviations "CustomAbbr"
+--slw-abbreviations-mode override --slw-abbreviations "CustomAbbr"
 
 case sensitivity default
 .
@@ -111,7 +111,7 @@ Custom word CustomWord. should not wrap. But normal sentence ends here!
 Custom word CustomWord. should not wrap.
 But normal sentence ends here!
 .
---mdslw-suppressions CustomWord
+--slw-suppressions CustomWord
 
 ignores option
 .
@@ -121,4 +121,4 @@ Dr.
 should wrap now.
 But Mr. should still be preserved!
 .
---mdslw-ignores Dr
+--slw-ignores Dr

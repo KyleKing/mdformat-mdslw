@@ -1,4 +1,4 @@
-# Test file for mdslw sentence wrapping
+# Test file for slw sentence wrapping
 
 ## Basic Sentences with Different Punctuation
 
@@ -286,8 +286,8 @@ All wrapped properly.
 This is an extraordinarily long sentence that contains numerous clauses,
 subordinate phrases, descriptive elements, and sufficient verbose content to
 substantially exceed the configured maximum line width of eighty characters that
-serves as the default wrapping threshold for the mdformat-mdslw plugin when the
-mdslw-wrap option is set.
+serves as the default wrapping threshold for the mdformat-slw plugin when the
+slw-wrap option is set.
 After that monster sentence, here's a short one.
 Medium length sentence here too!
 

@@ -1,4 +1,4 @@
-"""Public Extension for mdslw-style sentence wrapping.
+"""Public Extension for slw-style sentence wrapping.
 
 This module provides the mdformat plugin interface for sentence wrapping
 functionality. It registers CLI arguments and postprocessors that wrap
@@ -19,9 +19,9 @@ from ._sentence_wrapper import wrap_sentences
 def add_cli_argument_group(group: argparse._ArgumentGroup) -> None:
     """Add options to the mdformat CLI.
 
-    Configuration is stored in `mdit.options["mdformat"]["plugin"]["mdslw"]`
+    Configuration is stored in `mdit.options["mdformat"]["plugin"]["slw"]`
 
-    Note: When using --mdslw-wrap, consider disabling mdformat's line wrapping
+    Note: When using --slw-wrap, consider disabling mdformat's line wrapping
     with --wrap=keep to avoid conflicts between the two wrapping mechanisms.
 
     Args:
@@ -32,23 +32,23 @@ def add_cli_argument_group(group: argparse._ArgumentGroup) -> None:
         "--no-wrap-sentences",
         action="store_const",
         const=True,
-        help="Disable mdslw sentence wrapping (enabled by default)",
+        help="Disable slw sentence wrapping (enabled by default)",
     )
     group.add_argument(
-        "--mdslw-markers",
+        "--slw-markers",
         type=str,
         default=".!?:",
-        help="Characters that mark sentence endings for mdslw (default: .!?:)",
+        help="Characters that mark sentence endings for slw (default: .!?:)",
     )
     group.add_argument(
-        "--mdslw-wrap",
+        "--slw-wrap",
         type=int,
         default=80,
         help="Wrap lines at specified width (default: 80). "
         "Set to 0 to disable. Use with --wrap=keep to disable mdformat's wrapping.",
     )
     group.add_argument(
-        "--mdslw-lang",
+        "--slw-lang",
         type=str,
         dest="lang",
         default="ac",
@@ -56,7 +56,7 @@ def add_cli_argument_group(group: argparse._ArgumentGroup) -> None:
         "(default: ac). Supported: ac, en, de, es, fr, it",
     )
     group.add_argument(
-        "--mdslw-abbreviations-mode",
+        "--slw-abbreviations-mode",
         type=str,
         dest="abbreviations_mode",
         choices=["default", "off", "extend", "override"],
@@ -66,25 +66,25 @@ def add_cli_argument_group(group: argparse._ArgumentGroup) -> None:
         "override (replace built-in with custom)",
     )
     group.add_argument(
-        "--mdslw-abbreviations",
+        "--slw-abbreviations",
         type=str,
         dest="abbreviations",
         help="Comma-separated custom abbreviations to extend or override defaults",
     )
     group.add_argument(
-        "--mdslw-suppressions",
+        "--slw-suppressions",
         type=str,
         dest="suppressions",
         help="Space-separated words to add to suppression list",
     )
     group.add_argument(
-        "--mdslw-ignores",
+        "--slw-ignores",
         type=str,
         dest="ignores",
         help="Space-separated words to remove from suppression list",
     )
     group.add_argument(
-        "--mdslw-case-sensitive",
+        "--slw-case-sensitive",
         action="store_const",
         const=True,
         dest="case_sensitive",
@@ -95,7 +95,7 @@ def add_cli_argument_group(group: argparse._ArgumentGroup) -> None:
 def update_mdit(mdit: MarkdownIt) -> None:
     """Update the markdown-it parser.
 
-    The mdslw plugin doesn't add new markdown syntax, so no parser
+    The slw plugin doesn't add new markdown syntax, so no parser
     modifications are needed. All functionality is implemented via
     postprocessors that run after rendering.
 
@@ -110,7 +110,7 @@ def update_mdit(mdit: MarkdownIt) -> None:
 # A mapping from syntax tree node type to a function that renders it.
 # This can be used to overwrite renderer functions of existing syntax
 # or add support for new syntax.
-# The mdslw plugin doesn't need custom renderers, only postprocessors.
+# The slw plugin doesn't need custom renderers, only postprocessors.
 RENDERERS: Mapping[str, Render] = {}
 
 # A mapping from `RenderTreeNode.type` to a `Postprocess` that does

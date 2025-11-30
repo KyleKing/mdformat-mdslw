@@ -43,7 +43,7 @@ This is a very long sentence that will
 exceed forty characters easily and
 should wrap!
 .
---mdslw-wrap 40
+--slw-wrap 40
 
 long line wrapping with 80 chars default
 .
@@ -52,7 +52,7 @@ This is an extraordinarily long sentence with many words that will certainly exc
 This is an extraordinarily long sentence with many words that will certainly
 exceed the eighty character maximum line width when we enable wrapping!
 .
---mdslw-wrap 80
+--slw-wrap 80
 
 wrapping disabled with zero
 .
@@ -62,4 +62,4 @@ This is a very long sentence.
 It won't wrap with zero!
 The setting disables wrapping?
 .
---mdslw-wrap 0
+--slw-wrap 0

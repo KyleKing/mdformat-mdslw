@@ -1,4 +1,4 @@
-"""Sentence wrapping logic inspired by mdslw."""
+"""Sentence wrapping logic inspired by slw."""
 
 from __future__ import annotations
 
@@ -99,14 +99,14 @@ def get_sentence_markers(options: ContextOptions) -> str:
         ConfigurationError: If markers are invalid
 
     """
-    markers = get_conf(options, "mdslw_markers")
+    markers = get_conf(options, "slw_markers")
     result = str(markers) if markers is not None else DEFAULT_SENTENCE_MARKERS
     _validate_sentence_markers(result)
     return result
 
 
-def get_mdslw_wrap_width(options: ContextOptions) -> int:
-    """Get line wrap width from mdslw's --mdslw-wrap setting.
+def get_slw_wrap_width(options: ContextOptions) -> int:
+    """Get line wrap width from slw's --slw-wrap setting.
 
     Args:
         options: Configuration options from mdformat context
@@ -115,7 +115,7 @@ def get_mdslw_wrap_width(options: ContextOptions) -> int:
         Maximum line width in characters, or 0 to disable wrapping (default: 80)
 
     """
-    wrap_width = get_conf(options, "mdslw_wrap")
+    wrap_width = get_conf(options, "slw_wrap")
     return int(wrap_width) if wrap_width is not None else 80
 
 
@@ -476,10 +476,10 @@ def wrap_sentences(  # noqa: C901
 ) -> str:
     """Wrap text by inserting line breaks after sentences.
 
-    This is inspired by mdslw's sentence-wrapping behavior:
+    This is inspired by slw's sentence-wrapping behavior:
     - Insert line breaks after sentence-ending punctuation
     - Collapse consecutive whitespace per guidance.md
-    - Optionally wrap long lines using --mdslw-wrap setting
+    - Optionally wrap long lines using --slw-wrap setting
     - Preserve existing formatting for code blocks and special syntax
     - Respect abbreviations and suppression words
 
@@ -510,8 +510,8 @@ def wrap_sentences(  # noqa: C901
     if mdformat_wrap is not None and mdformat_wrap not in {"keep", None}:
         logger.warning(
             "mdformat's --wrap is set to '%s'. "
-            "Consider using --wrap=keep to avoid conflicts with mdslw sentence wrapping. "
-            "Use --mdslw-wrap instead for line width control.",
+            "Consider using --wrap=keep to avoid conflicts with slw sentence wrapping. "
+            "Use --slw-wrap instead for line width control.",
             mdformat_wrap,
         )
 
@@ -522,7 +522,7 @@ def wrap_sentences(  # noqa: C901
     protected_regions = _find_protected_regions(text)
 
     sentence_markers = get_sentence_markers(context.options)
-    wrap_width = get_mdslw_wrap_width(context.options)
+    wrap_width = get_slw_wrap_width(context.options)
     suppression_words = _get_suppression_words(context.options)
     case_sensitive = get_conf(context.options, "case_sensitive")
 
@@ -576,7 +576,7 @@ def wrap_sentences(  # noqa: C901
     # This prevents line wrapping from breaking within link text
     wrapped = _replace_spaces_in_link_text(wrapped)
 
-    # Step 4: Wrap long lines using --mdslw-wrap setting (per guidance.md)
+    # Step 4: Wrap long lines using --slw-wrap setting (per guidance.md)
     if wrap_width > 0:
         lines = wrapped.split("\n")
         wrapped_lines = []

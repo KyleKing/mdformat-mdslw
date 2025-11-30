@@ -4,7 +4,7 @@ This module provides suppression word lists for different languages.
 Words in these lists won't trigger sentence wrapping when followed by
 sentence-ending punctuation.
 
-Based on mdslw's approach with Unicode CLDR-inspired lists.
+Based on slw's approach with Unicode CLDR-inspired lists.
 """
 
 from __future__ import annotations
