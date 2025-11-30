@@ -183,23 +183,43 @@ def _get_suppression_words(options: ContextOptions) -> set[str]:
 
 
 def _wrap_long_line(line: str, max_width: int) -> list[str]:
-    """Wrap a single long line into multiple lines.
+    """Wrap a single long line preserving indentation.
+
+    Per guidance.md: "Wrap lines that are longer than the maximum line width,
+    if set, without splitting words or splitting at non-breaking spaces while
+    also keeping indents in tact."
 
     Args:
         line: The line to wrap
         max_width: Maximum width in characters
 
     Returns:
-        List of wrapped lines
+        List of wrapped lines with preserved indentation
 
     """
+    # Extract leading whitespace (indentation)
+    indent_match = re.match(r"^(\s*)", line)
+    indent = indent_match.group(1) if indent_match else ""
+    content = line[len(indent) :]
+
+    # Don't wrap if line fits within max_width
     if len(line) <= max_width:
         return [line]
 
-    words = line.split()
+    # Split on regular spaces but NOT on non-breaking spaces (U+00A0)
+    # Use a pattern that treats nbsp as part of the word
+    nbsp = "\u00a0"
+    # Replace nbsp with a placeholder, split, then restore
+    placeholder = "\x00"
+    content_normalized = content.replace(nbsp, placeholder)
+    words = content_normalized.split()
+    # Restore nbsp in each word
+    words = [w.replace(placeholder, nbsp) for w in words]
+
     wrapped_lines = []
     current_line: list[str] = []
-    current_length = 0
+    # Start with indent length
+    current_length = len(indent)
 
     for word in words:
         word_len = len(word)
@@ -207,17 +227,18 @@ def _wrap_long_line(line: str, max_width: int) -> list[str]:
         space_needed = word_len + (1 if current_line else 0)
 
         if current_length + space_needed > max_width and current_line:
-            # Current line would exceed max_width, flush it
-            wrapped_lines.append(" ".join(current_line))
+            # Current line would exceed max_width, flush it with indent
+            wrapped_lines.append(indent + " ".join(current_line))
             current_line = [word]
-            current_length = word_len
+            # Reset length to indent + word
+            current_length = len(indent) + word_len
         else:
             # Add word to current line
             current_line.append(word)
             current_length += space_needed
 
     if current_line:
-        wrapped_lines.append(" ".join(current_line))
+        wrapped_lines.append(indent + " ".join(current_line))
 
     return wrapped_lines
 

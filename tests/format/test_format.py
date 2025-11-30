@@ -84,6 +84,10 @@ def _parse_fixture_options(lines: list[str], start: int) -> tuple[dict, int]:  #
                 elif part == "--mdslw-case-sensitive":
                     options["case_sensitive"] = True
                     j += 1
+                elif part == "--mdslw-wrap":
+                    if j + 1 < len(parts):
+                        options["mdslw_wrap"] = int(parts[j + 1])
+                        j += 2
                 else:
                     j += 1
             i += 1
@@ -169,7 +173,12 @@ def read_fixtures_with_options(filepath: Path) -> list[tuple[int, str, str, str,
 fixtures = flatten(
     [
         read_fixtures_with_options(Path(__file__).parent / "fixtures" / fixture_path)
-        for fixture_path in ("mdslw.md", "abbreviations.md", "whitespace.md")
+        for fixture_path in (
+            "mdslw.md",
+            "abbreviations.md",
+            "whitespace.md",
+            "indentation.md",
+        )
     ],
 )
 
