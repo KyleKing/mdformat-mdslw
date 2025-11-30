@@ -222,6 +222,52 @@ def _wrap_long_line(line: str, max_width: int) -> list[str]:
     return wrapped_lines
 
 
+def _collapse_whitespace(text: str) -> str:
+    """Collapse consecutive whitespace while preserving non-breaking spaces.
+
+    Per guidance.md algorithm:
+    - Collapse consecutive whitespace into single space
+    - Preserve non-breaking spaces (U+00A0)
+    - Preserve linebreaks preceded by non-breaking spaces
+
+    Args:
+        text: Text to process
+
+    Returns:
+        Text with collapsed whitespace
+
+    """
+    # Non-breaking space character (U+00A0)
+    nbsp = "\u00a0"
+
+    # Replace sequences of regular spaces with single space
+    # But preserve non-breaking spaces and their adjacent linebreaks
+    result = []
+    i = 0
+    while i < len(text):
+        char = text[i]
+
+        if char == nbsp:
+            # Preserve non-breaking space
+            result.append(char)
+            i += 1
+            # If followed by newline, preserve it too
+            if i < len(text) and text[i] == "\n":
+                result.append(text[i])
+                i += 1
+        elif char in " \t":
+            # Collapse consecutive regular whitespace (spaces/tabs) to single space
+            result.append(" ")
+            i += 1
+            while i < len(text) and text[i] in " \t":
+                i += 1
+        else:
+            result.append(char)
+            i += 1
+
+    return "".join(result)
+
+
 def wrap_sentences(  # noqa: C901
     text: str,
     _node: RenderTreeNode,
@@ -231,6 +277,7 @@ def wrap_sentences(  # noqa: C901
 
     This is inspired by mdslw's sentence-wrapping behavior:
     - Insert line breaks after sentence-ending punctuation
+    - Collapse consecutive whitespace per guidance.md
     - Optionally wrap long lines using --mdslw-wrap setting
     - Preserve existing formatting for code blocks and special syntax
     - Respect abbreviations and suppression words
@@ -266,6 +313,9 @@ def wrap_sentences(  # noqa: C901
             "Use --mdslw-wrap instead for line width control.",
             mdformat_wrap,
         )
+
+    # Step 1: Collapse whitespace (per guidance.md)
+    text = _collapse_whitespace(text)
 
     sentence_markers = get_sentence_markers(context.options)
     wrap_width = get_mdslw_wrap_width(context.options)

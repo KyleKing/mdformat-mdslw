@@ -169,7 +169,7 @@ def read_fixtures_with_options(filepath: Path) -> list[tuple[int, str, str, str,
 fixtures = flatten(
     [
         read_fixtures_with_options(Path(__file__).parent / "fixtures" / fixture_path)
-        for fixture_path in ("mdslw.md", "abbreviations.md")
+        for fixture_path in ("mdslw.md", "abbreviations.md", "whitespace.md")
     ],
 )
 
