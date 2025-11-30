@@ -210,7 +210,8 @@ def _wrap_long_line(line: str, max_width: int) -> list[str]:
     # Use a pattern that treats nbsp as part of the word
     nbsp = "\u00a0"
     # Replace nbsp with a placeholder, split, then restore
-    placeholder = "\x00"
+    # Note: Use \x01 instead of \x00 because mdformat uses \x00 for FILLER/WRAP_POINT
+    placeholder = "\x01"
     content_normalized = content.replace(nbsp, placeholder)
     words = content_normalized.split()
     # Restore nbsp in each word
