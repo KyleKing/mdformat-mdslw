@@ -244,6 +244,114 @@ def _wrap_long_line(line: str, max_width: int) -> list[str]:
     return wrapped_lines
 
 
+def _find_protected_regions(text: str) -> list[tuple[int, int]]:  # noqa: C901, PLR0912, PLR0915
+    """Find regions where sentence wrapping should not occur.
+
+    Per guidance.md: "Not in a context where auto-wrapping is possible:
+    - Inline code, links, definition lists, etc."
+
+    Returns:
+        List of (start, end) tuples marking protected character positions
+
+    """
+    protected = []
+
+    # Find inline code spans: `code`
+    # Handle both single and multiple backticks
+    i = 0
+    while i < len(text):
+        if text[i] == "`":
+            # Count consecutive backticks
+            backtick_count = 0
+            start = i
+            while i < len(text) and text[i] == "`":
+                backtick_count += 1
+                i += 1
+
+            # Find matching close
+            close_start = i
+            while i < len(text):
+                if text[i] == "`":
+                    close_count = 0
+                    while i < len(text) and text[i] == "`":
+                        close_count += 1
+                        i += 1
+                    if close_count == backtick_count:
+                        # Found matching close - protect entire span
+                        protected.append((start, i))
+                        break
+                else:
+                    i += 1
+            else:
+                # No matching close found - unclosed code span, skip
+                i = close_start
+        else:
+            i += 1
+
+    # Find links: [text](url) or [text][ref]
+    # Pattern: \[...\](\(...\)|[...])
+    i = 0
+    while i < len(text):  # noqa: PLR1702
+        if text[i] == "[":
+            bracket_start = i
+            i += 1
+            # Find closing ]
+            depth = 1
+            while i < len(text) and depth > 0:
+                if text[i] == "[":
+                    depth += 1
+                elif text[i] == "]":
+                    depth -= 1
+                i += 1
+
+            if depth == 0 and i < len(text):
+                # Found ], check for ( or [
+                if text[i] == "(":
+                    # Inline link: [text](url)
+                    i += 1
+                    depth = 1
+                    while i < len(text) and depth > 0:
+                        if text[i] == "(":
+                            depth += 1
+                        elif text[i] == ")":
+                            depth -= 1
+                        i += 1
+                    if depth == 0:
+                        # Complete link found
+                        protected.append((bracket_start, i))
+                elif text[i] == "[":
+                    # Reference link: [text][ref]
+                    i += 1
+                    depth = 1
+                    while i < len(text) and depth > 0:
+                        if text[i] == "[":
+                            depth += 1
+                        elif text[i] == "]":
+                            depth -= 1
+                        i += 1
+                    if depth == 0:
+                        # Complete reference link found
+                        protected.append((bracket_start, i))
+        else:
+            i += 1
+
+    return protected
+
+
+def _is_position_protected(pos: int, protected_regions: list[tuple[int, int]]) -> bool:
+    """Check if a position falls within any protected region.
+
+    Args:
+        pos: Character position to check
+        protected_regions: List of (start, end) tuples
+
+    Returns:
+        True if position is protected, False otherwise
+
+    """
+    return any(start <= pos < end for start, end in protected_regions)
+
+
 def _collapse_whitespace(text: str) -> str:
     """Collapse consecutive whitespace while preserving non-breaking spaces.
 
@@ -339,6 +447,9 @@ def wrap_sentences(  # noqa: C901
     # Step 1: Collapse whitespace (per guidance.md)
     text = _collapse_whitespace(text)
 
+    # Step 2: Find protected regions (inline code, links) per guidance.md
+    protected_regions = _find_protected_regions(text)
+
     sentence_markers = get_sentence_markers(context.options)
     wrap_width = get_mdslw_wrap_width(context.options)
     suppression_words = _get_suppression_words(context.options)
@@ -350,9 +461,16 @@ def wrap_sentences(  # noqa: C901
     boundary_pattern = re.compile(r"([" + marker_class + r"])(\s*[\"'\)\]\}]*)\s+")
 
     def _replace_with_newline(match: re.Match[str]) -> str:
-        """Replace sentence ending with newline, checking suppressions."""
+        """Replace sentence ending with newline, checking suppressions and protection."""
         marker = match.group(1)  # Sentence marker
         closing = match.group(2)  # Closing chars
+
+        # Get position of the sentence marker
+        marker_pos = match.start() + match.group(0).index(marker)
+
+        # Check if marker is in a protected region (inline code, link)
+        if _is_position_protected(marker_pos, protected_regions):
+            return match.group(0)
 
         # Get text before this match to check for suppression words
         start_pos = match.start()
