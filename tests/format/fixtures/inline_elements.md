@@ -24,25 +24,25 @@ More text!
 
 link with period in URL
 .
-Visit [the site](https://test.example.com/page.html). Done!
+Visit [the site](https://test.example.com/page.html). Done!
 .
-Visit [the site](https://test.example.com/page.html).
+Visit [the site](https://test.example.com/page.html).
 Done!
 .
 
 reference link
 .
-Check [this out][ref]. Another sentence!
+Check [this out][ref]. Another sentence!
 .
-Check [this out][ref].
+Check [this out][ref].
 Another sentence!
 .
 
 reference link with period in text
 .
-Read [section 2.1][ref]. Important information!
+Read [section 2.1][ref]. Important information!
 .
-Read [section 2.1][ref].
+Read [section 2.1][ref].
 Important information!
 .
 

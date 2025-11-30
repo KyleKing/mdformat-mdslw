@@ -91,8 +91,8 @@ It should wrap correctly!** And *italic text works the same way.
 Even with multiple sentences?* Yes, it does:
 the formatting is preserved.
 
-Here's a [link that contains a complete sentence.
-It should not break!](https://example.com) And here's another sentence.
+Here's a [link that contains a complete sentence.
+It should not break!](https://example.com) And here's another sentence.
 Code like `const x = 1; console.log(x);` should remain intact.
 Even when it contains periods!
 

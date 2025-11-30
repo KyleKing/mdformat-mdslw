@@ -352,6 +352,77 @@ def _is_position_protected(pos: int, protected_regions: list[tuple[int, int]]) -
     return any(start <= pos < end for start, end in protected_regions)
 
 
+def _replace_spaces_in_link_text(text: str) -> str:  # noqa: C901, PLR0912
+    """Replace spaces in link text with non-breaking spaces.
+
+    Per guidance.md: "Before line wrapping, replace all spaces in link texts
+    by non-breaking spaces (and similar inline content that can't be wrapped)"
+
+    Args:
+        text: Text to process
+
+    Returns:
+        Text with spaces in link text replaced by nbsp (U+00A0)
+
+    """
+    nbsp = "\u00a0"
+    result = []
+    i = 0
+
+    while i < len(text):  # noqa: PLR1702
+        if text[i] == "[":
+            # Start of potential link
+            result.append(text[i])
+            i += 1
+
+            # Find closing ]
+            depth = 1
+            link_text_chars = []
+            while i < len(text) and depth > 0:
+                if text[i] == "[":
+                    depth += 1
+                    link_text_chars.append(text[i])
+                elif text[i] == "]":
+                    depth -= 1
+                    if depth > 0:
+                        link_text_chars.append(text[i])
+                elif text[i] == " ":
+                    # Replace space with nbsp in link text
+                    link_text_chars.append(nbsp)
+                else:
+                    link_text_chars.append(text[i])
+                i += 1
+
+            # Add link text with nbsp replacements
+            result.extend(link_text_chars)
+
+            if depth == 0:
+                # Found closing ], add it
+                result.append("]")
+
+                # Check if this is actually a link (has ( or [ following)
+                if i < len(text) and text[i] in {"(", "["}:
+                    # Copy the rest of the link (URL or reference) as-is
+                    open_char = text[i]
+                    close_char = ")" if open_char == "(" else "]"
+                    result.append(text[i])
+                    i += 1
+                    depth = 1
+
+                    while i < len(text) and depth > 0:
+                        if text[i] == open_char:
+                            depth += 1
+                        elif text[i] == close_char:
+                            depth -= 1
+                        result.append(text[i])
+                        i += 1
+        else:
+            result.append(text[i])
+            i += 1
+
+    return "".join(result)
+
+
 def _collapse_whitespace(text: str) -> str:
     """Collapse consecutive whitespace while preserving non-breaking spaces.
 
@@ -501,7 +572,11 @@ def wrap_sentences(  # noqa: C901
     # Apply sentence breaks
     wrapped = boundary_pattern.sub(_replace_with_newline, text)
 
-    # Optional: wrap long lines using --mdslw-wrap setting
+    # Step 3: Replace spaces in link text with non-breaking spaces (per guidance.md)
+    # This prevents line wrapping from breaking within link text
+    wrapped = _replace_spaces_in_link_text(wrapped)
+
+    # Step 4: Wrap long lines using --mdslw-wrap setting (per guidance.md)
     if wrap_width > 0:
         lines = wrapped.split("\n")
         wrapped_lines = []
