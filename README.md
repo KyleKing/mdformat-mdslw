@@ -266,6 +266,77 @@ When one of the limited number of characters (`.!?` by default) which serve as e
 1. Replace all spaces in link texts by non-breaking spaces (and similar inline content that can't be wrapped)
 1. Wrap lines that are longer than the maximum line width, if set, (88 characters by default) without splitting words or splitting at non-breaking spaces while also keeping indents in tact
 
+## Language Support and Limitations
+
+### Supported Languages
+
+mdformat-slw provides built-in abbreviation lists for:
+
+- **ac** (Author's Choice - default): 77 common abbreviations including titles, time, Latin terms, academic, business, and geography
+- **en** (English): 17 abbreviations
+- **de** (German): 54 abbreviations
+- **es** (Spanish): 36 abbreviations
+- **fr** (French): 42 abbreviations
+- **it** (Italian): 40 abbreviations
+
+These languages work well with the default ASCII punctuation markers (`.!?`).
+
+### Current Limitations
+
+#### CJK Languages (Chinese, Japanese, Korean)
+
+**Requires spaces after sentence markers** - The current implementation requires whitespace after punctuation to detect sentence boundaries. This creates limitations for:
+
+- **Japanese**: Natural Japanese text often has no spaces between sentences (e.g., `文です。次の文です。`)
+- **Chinese**: Similar to Japanese, Chinese typically doesn't use spaces between sentences
+- **Korean**: Same space requirement applies
+
+**Workarounds:**
+- Add spaces after CJK punctuation marks for wrapping to work: `文です。 次の文です。`
+- Use `--slw-markers=".!?。！？"` to include CJK punctuation marks
+- Note: Even with CJK markers configured, spaces are still required after punctuation
+
+**Example that works:**
+```markdown
+これは最初の文です。 これは2番目の文です。 これは3番目の文です。
+```
+
+**Example that doesn't wrap (no spaces):**
+```markdown
+これは最初の文です。これは2番目の文です。これは3番目の文です。
+```
+
+See test files `tests/format/fixtures/lang_ja.md` and `tests/format/fixtures/lang_ko.md` for more examples.
+
+#### Arabic and RTL Languages
+
+**ASCII punctuation only** - While Arabic text will wrap if using ASCII punctuation (`.!?`), native Arabic punctuation is not in the default marker set:
+
+- Arabic Question Mark: `؟` (U+061F)
+- Arabic Comma: `،` (U+060C)
+- Arabic Semicolon: `؛` (U+061B)
+
+**No abbreviation list** - Unlike European languages, there's no built-in Arabic abbreviation list (common abbreviations like إلخ, د., م., ص. are not recognized).
+
+**Workarounds:**
+- Use `--slw-markers=".!?؟"` to include Arabic punctuation
+- Use `--slw-abbreviations="إلخ,د,م,ص"` to add common Arabic abbreviations
+
+**Example:**
+```bash
+mdformat document.md --slw-markers=".!?؟" --slw-abbreviations="إلخ,د,م"
+```
+
+#### Unicode Line Breaking
+
+The current line wrapping implementation (when `--slw-wrap` is set) uses simple space-based word boundaries. It does not implement:
+
+- **Kinsoku shori (禁則処理)**: Japanese/Chinese rules about which characters cannot start or end lines
+- **Unicode Line Breaking Algorithm (UAX #14)**: Proper line breaking for all scripts
+- **CJK word segmentation**: Intelligent breaking within CJK text that has no spaces
+
+For more details on these limitations and potential improvements, see `MULTILINGUAL_ANALYSIS.md`.
+
 ## Acknowledgments
 
 This plugin is inspired by and named after [mdslw](https://github.com/razziel89/mdslw) by [@razziel89](https://github.com/razziel89). The original `mdslw` is an excellent standalone tool for semantic line wrapping of markdown files.
