@@ -28,15 +28,12 @@ def _read_lines_until_delimiter(lines: list[str], start: int) -> tuple[list[str]
 
 _FLAG_OPTIONS = {
     "--no-wrap-sentences": "no_wrap_sentences",
-    "--slw-case-sensitive": "case_sensitive",
+    "--slw-abbreviations-only": "abbreviations_only",
 }
 
 _STRING_OPTIONS = {
-    "--slw-abbreviations-mode": "abbreviations_mode",
     "--slw-abbreviations": "abbreviations",
     "--slw-lang": "lang",
-    "--slw-suppressions": "suppressions",
-    "--slw-ignores": "ignores",
     "--slw-markers": "slw_markers",
 }
 
@@ -159,6 +156,7 @@ fixtures = flatten(
         for fixture_path in (
             "slw.md",
             "abbreviations.md",
+            "language.md",
             "whitespace.md",
             "indentation.md",
             "inline_elements.md",

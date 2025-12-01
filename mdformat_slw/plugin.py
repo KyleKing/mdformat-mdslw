@@ -60,43 +60,21 @@ def add_cli_argument_group(group: argparse._ArgumentGroup) -> None:
         type=str,
         dest="lang",
         default="ac",
-        help="Space-separated language codes for abbreviation lists "
-        "(default: ac). Supported: ac, en, de, es, fr, it",
-    )
-    group.add_argument(
-        "--slw-abbreviations-mode",
-        type=str,
-        dest="abbreviations_mode",
-        choices=["default", "off", "extend", "override"],
-        default="default",
-        help="Abbreviation detection mode: default (use built-in lists), "
-        "off (disable), extend (add custom to built-in), "
-        "override (replace built-in with custom)",
+        help="Language code for abbreviation list (default: ac). "
+        "Supported: ac, en, de, es, fr, it",
     )
     group.add_argument(
         "--slw-abbreviations",
         type=str,
         dest="abbreviations",
-        help="Comma-separated custom abbreviations to extend or override defaults",
+        help="Comma-separated custom abbreviations (extends language list by default)",
     )
     group.add_argument(
-        "--slw-suppressions",
-        type=str,
-        dest="suppressions",
-        help="Space-separated words to add to suppression list",
-    )
-    group.add_argument(
-        "--slw-ignores",
-        type=str,
-        dest="ignores",
-        help="Space-separated words to remove from suppression list",
-    )
-    group.add_argument(
-        "--slw-case-sensitive",
+        "--slw-abbreviations-only",
         action="store_const",
         const=True,
-        dest="case_sensitive",
-        help="Enable case-sensitive abbreviation matching (default: case-insensitive)",
+        dest="abbreviations_only",
+        help="Use only custom abbreviations, ignore language lists",
     )
 
 

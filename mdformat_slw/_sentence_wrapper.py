@@ -187,64 +187,37 @@ def get_min_line_length(options: ContextOptions) -> int:
 
 
 def _get_suppression_words(options: ContextOptions) -> set[str]:
-    """Build complete set of words that suppress sentence wrapping.
+    """Build set of words that suppress sentence wrapping.
 
-    Combines language-specific defaults with custom suppressions/ignores.
-    Handles case sensitivity based on configuration.
+    Uses language-specific defaults, optionally extended with custom abbreviations.
+    Always case-insensitive, single language only.
 
     Args:
         options: Configuration options from mdformat context
 
     Returns:
-        Set of words that should not trigger sentence breaks
+        Set of words (lowercase) that should not trigger sentence breaks
 
     """
-    mode = get_conf(options, "abbreviations_mode")
-    if mode is None:
-        mode = "default"
-    mode = str(mode)
-
-    # Mode: off - disable all abbreviation detection
-    if mode == "off":
-        return set()
-
-    # Start with language-specific defaults
     words: set[str] = set()
-    if mode in {"default", "extend"}:
-        lang_str = get_conf(options, "lang")
-        langs = str(lang_str).split() if lang_str else [DEFAULT_LANG]
-        for lang in langs:
-            words.update(LANG_SUPPRESSIONS.get(lang, []))
 
-    # Handle custom abbreviations
+    # Check if user wants only custom abbreviations
+    abbreviations_only = get_conf(options, "abbreviations_only")
+
+    # Load language list (unless override mode)
+    if not abbreviations_only:
+        lang = get_conf(options, "lang")
+        lang_code = str(lang) if lang else DEFAULT_LANG
+        words.update(LANG_SUPPRESSIONS.get(lang_code, []))
+
+    # Add custom abbreviations (comma-separated)
     custom = get_conf(options, "abbreviations")
     if custom:
-        # Parse custom abbreviations (comma-separated string)
-        custom_words = str(custom).split(",")
-        custom_words = [w.strip() for w in custom_words]
+        custom_words = [w.strip() for w in str(custom).split(",")]
+        words.update(custom_words)
 
-        if mode == "override":
-            words = set(custom_words)
-        else:  # extend or default mode
-            words.update(custom_words)
-
-    # Add extra suppressions
-    suppressions = get_conf(options, "suppressions")
-    if suppressions:
-        supp_words = str(suppressions).split()
-        words.update(supp_words)
-
-    # Remove ignored words
-    ignores = get_conf(options, "ignores")
-    if ignores:
-        ignore_words = str(ignores).split()
-        words -= set(ignore_words)
-
-    # Handle case sensitivity
-    case_sensitive = get_conf(options, "case_sensitive")
-    if not case_sensitive:
-        # Convert to lowercase for case-insensitive matching
-        words = {w.lower() for w in words}
+    # Always case-insensitive
+    words = {w.lower() for w in words}
 
     return words
 
@@ -544,7 +517,6 @@ class _WrapConfig:
     wrap_width: int
     min_line_length: int
     suppression_words: set[str]
-    case_sensitive: bool
     boundary_pattern: re.Pattern[str]
 
 
@@ -554,7 +526,6 @@ def _build_wrap_config(options: ContextOptions) -> _WrapConfig:
     wrap_width = get_slw_wrap_width(options)
     min_line_length = get_min_line_length(options)
     suppression_words = _get_suppression_words(options)
-    case_sensitive = bool(get_conf(options, "case_sensitive"))
 
     marker_class = re.escape(sentence_markers)
     boundary_pattern = re.compile(r"([" + marker_class + r"])(\s*[\"'\)\]\}]*)\s+")
@@ -564,22 +535,27 @@ def _build_wrap_config(options: ContextOptions) -> _WrapConfig:
         wrap_width=wrap_width,
         min_line_length=min_line_length,
         suppression_words=suppression_words,
-        case_sensitive=case_sensitive,
         boundary_pattern=boundary_pattern,
     )
 
 
-def _is_suppressed(
-    text_before: str, suppression_words: set[str], case_sensitive: bool
-) -> bool:
-    """Check if text ends with a suppression word."""
+def _is_suppressed(text_before: str, suppression_words: set[str]) -> bool:
+    """Check if text ends with a suppression word (case-insensitive).
+
+    Args:
+        text_before: Text to check (will be lowercased)
+        suppression_words: Set of suppression words (already lowercase)
+
+    Returns:
+        True if text ends with a suppression word
+
+    """
     if not suppression_words:
         return False
+    text_lower = text_before.lower()
     for supp_word in suppression_words:
-        check_pattern = re.escape(supp_word)
-        pattern_to_check = r"\b" + check_pattern.replace(r"\.", r"\.") + r"$"
-        flags = 0 if case_sensitive else re.IGNORECASE
-        if re.search(pattern_to_check, text_before, flags):
+        pattern = r"\b" + re.escape(supp_word) + r"$"
+        if re.search(pattern, text_lower):
             return True
     return False
 
@@ -607,7 +583,7 @@ def _apply_sentence_breaks(
             continue
 
         text_before = text[: match.start()]
-        if _is_suppressed(text_before, config.suppression_words, config.case_sensitive):
+        if _is_suppressed(text_before, config.suppression_words):
             result_parts.append(match.group(0))
             last_end = match.end()
             continue

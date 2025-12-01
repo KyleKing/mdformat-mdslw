@@ -57,18 +57,6 @@ The study included multiple items, e.g. samples and data!
 Prof. Johnson agreed etc. with the findings.
 .
 
-abbreviations mode off aggressive
-.
-Dr. Smith arrived. Prof. Johnson was there.
-.
-Dr.
-Smith arrived.
-Prof.
-Johnson was there.
-.
---slw-abbreviations-mode=off
---slw-min-line=0
-
 custom abbreviations extend (line exceeds min-line so wraps)
 .
 The company XYZ Corp. announced new products. The CEO Mr. Anderson attended!
@@ -76,7 +64,6 @@ The company XYZ Corp. announced new products. The CEO Mr. Anderson attended!
 The company XYZ Corp. announced new products.
 The CEO Mr. Anderson attended!
 .
---slw-abbreviations-mode=extend
 --slw-abbreviations=Corp,XYZ
 
 custom abbreviations extend aggressive mode
@@ -86,11 +73,10 @@ The company XYZ Corp. announced new products. The CEO Mr. Anderson attended!
 The company XYZ Corp. announced new products.
 The CEO Mr. Anderson attended!
 .
---slw-abbreviations-mode=extend
 --slw-abbreviations=Corp,XYZ
 --slw-min-line=0
 
-custom abbreviations override aggressive mode
+custom abbreviations only mode aggressive
 .
 Dr. Smith arrived. But CustomAbbr. was preserved!
 .
@@ -98,7 +84,7 @@ Dr.
 Smith arrived.
 But CustomAbbr. was preserved!
 .
---slw-abbreviations-mode=override
+--slw-abbreviations-only
 --slw-abbreviations=CustomAbbr
 --slw-min-line=0
 
@@ -187,32 +173,21 @@ It might be Mar. or Apr. instead!
 .
 --slw-min-line=0
 
-suppressions option (line exceeds min-line so wraps)
+custom word as abbreviation (line exceeds min-line so wraps)
 .
 Custom word CustomWord. should not wrap. But normal sentence ends here!
 .
 Custom word CustomWord. should not wrap.
 But normal sentence ends here!
 .
---slw-suppressions=CustomWord
+--slw-abbreviations=CustomWord
 
-suppressions option aggressive mode
+custom word as abbreviation aggressive mode
 .
 Custom word CustomWord. should not wrap. But normal sentence ends here!
 .
 Custom word CustomWord. should not wrap.
 But normal sentence ends here!
 .
---slw-suppressions=CustomWord
---slw-min-line=0
-
-ignores option aggressive mode
-.
-Dr. should wrap now. But Mr. should still be preserved!
-.
-Dr.
-should wrap now.
-But Mr. should still be preserved!
-.
---slw-ignores=Dr
+--slw-abbreviations=CustomWord
 --slw-min-line=0

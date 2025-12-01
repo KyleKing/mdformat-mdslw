@@ -37,30 +37,61 @@ mdformat document.md --slw-min-line 0
 
 #### Options
 
-**Basic Options:**
+**Wrapping Behavior:**
 
 - `--no-wrap-sentences`: Disable sentence wrapping (enabled by default)
 - `--slw-markers TEXT`: Characters that mark sentence endings (default: `.!?`)
-- `--slw-wrap INTEGER`: Maximum line width for wrapping (default: 88)
+- `--slw-wrap INTEGER`: Maximum line width for wrapping (default: 88, set to `0` to disable)
 - `--slw-min-line INTEGER`: Minimum line length before sentence wrapping (default: 40)
     - Set to `0` for aggressive mode (always wrap after sentences)
     - Lines shorter than this threshold won't be wrapped, creating a "soft wrap" effect
 
-**Abbreviation Detection:**
+**Abbreviation Handling:**
 
-- `--slw-lang TEXT`: Space-separated language codes for abbreviation lists (default: `ac`)
-    - Supported: `ac` (all-caps only), `en`, `de`, `es`, `fr`, `it`
-- `--slw-abbreviations-mode TEXT`: Abbreviation detection mode (default: `default`)
-    - `default`: Use built-in language lists
-    - `off`: Disable abbreviation detection
-    - `extend`: Add custom abbreviations to built-in lists
-    - `override`: Replace built-in lists with custom abbreviations
-- `--slw-abbreviations TEXT`: Comma-separated custom abbreviations (e.g., `Dr.,Prof.,etc.`)
-- `--slw-suppressions TEXT`: Space-separated words to add to suppression list
-- `--slw-ignores TEXT`: Space-separated words to remove from suppression list
-- `--slw-case-sensitive`: Enable case-sensitive abbreviation matching (default: case-insensitive)
+- `--slw-lang TEXT`: Language code for abbreviation list (default: `ac`)
+    - Supported: `ac` (Author's Choice), `en`, `de`, `es`, `fr`, `it`
+- `--slw-abbreviations TEXT`: Comma-separated custom abbreviations (extends language list by default)
+- `--slw-abbreviations-only`: Use only custom abbreviations, ignore language lists
 
 > **Note:** When using `--slw-wrap`, consider adding `--wrap=keep` to disable mdformat's built-in line wrapping and avoid conflicts.
+
+## Common Patterns
+
+Use default abbreviations (Author's Choice):
+
+```bash
+mdformat document.md
+```
+
+Use language-specific abbreviations:
+
+```bash
+mdformat document.md --slw-lang=en
+```
+
+Extend language list with custom abbreviations:
+
+```bash
+mdformat document.md --slw-lang=en --slw-abbreviations="NASA,FBI,CustomCorp"
+```
+
+Use only custom abbreviations:
+
+```bash
+mdformat document.md --slw-abbreviations-only --slw-abbreviations="NASA,FBI"
+```
+
+Aggressive wrapping (always wrap after sentences):
+
+```bash
+mdformat document.md --slw-min-line=0
+```
+
+Disable sentence wrapping:
+
+```bash
+mdformat document.md --no-wrap-sentences
+```
 
 ### Configuration File
 
@@ -82,10 +113,9 @@ slw_wrap = 88
 slw_min_line = 40
 
 # Configure abbreviation detection
-lang = "en de"  # Use English and German abbreviations
-abbreviations_mode = "extend"  # Add custom to built-in lists
-abbreviations = "Dr.,Prof.,etc."  # Custom abbreviations
-case_sensitive = false  # Case-insensitive matching (default)
+lang = "en"  # Language for abbreviation list (ac, en, de, es, fr, it)
+abbreviations = "Corp,Inc,NASA"  # Custom abbreviations (extends language list)
+abbreviations_only = false  # Set to true to use only custom abbreviations
 
 # Recommended: disable mdformat's wrapping to avoid conflicts
 [mdformat]
@@ -226,8 +256,7 @@ When one of the limited number of characters (`.!?` by default) which serve as e
     - Multiple end-of-sentence markers occur (such as `p.m.` or `e.g.`)
     - Identified as an abbreviation from language-specific lists (`Dr.`, `Prof.`, `etc.`, etc.)
     - Matched against custom abbreviations specified via `--slw-abbreviations`
-    - Part of user-specified suppression words via `--slw-suppressions`
-1. Abbreviation matching is case-insensitive by default (use `--slw-case-sensitive` to change)
+1. Abbreviation matching is always case-insensitive
 
 ### Algorithm
 
