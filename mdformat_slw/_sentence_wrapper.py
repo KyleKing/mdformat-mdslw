@@ -469,27 +469,9 @@ def _collapse_whitespace(text: str) -> str:
     return "".join(result)
 
 
-def _is_inside_table(node: RenderTreeNode) -> bool:
-    """Check if a node is inside a table by walking up the parent chain.
-
-    Args:
-        node: The render tree node to check
-
-    Returns:
-        True if node is inside a table, False otherwise
-
-    """
-    parent = node.parent
-    while parent and not parent.is_root:
-        if parent.type in {"table", "thead", "tbody", "th", "td"}:
-            return True
-        parent = parent.parent
-    return False
-
-
 def wrap_sentences(  # noqa: C901
     text: str,
-    node: RenderTreeNode,
+    _node: RenderTreeNode,
     context: RenderContext,
 ) -> str:
     """Wrap text by inserting line breaks after sentences.
@@ -501,9 +483,12 @@ def wrap_sentences(  # noqa: C901
     - Preserve existing formatting for code blocks and special syntax
     - Respect abbreviations and suppression words
 
+    Note: The _node parameter is required by mdformat's postprocessor
+    interface but is not used in this implementation.
+
     Args:
         text: The rendered text to process
-        node: The syntax tree node being rendered
+        _node: The syntax tree node being rendered (required by interface)
         context: The rendering context with configuration options
 
     Returns:
@@ -518,10 +503,6 @@ def wrap_sentences(  # noqa: C901
 
     # Don't wrap if text is empty or just whitespace
     if not text or not text.strip():
-        return text
-
-    # Don't wrap if we're inside a table
-    if _is_inside_table(node):
         return text
 
     # Warn if mdformat's --wrap is set (potential conflict)
