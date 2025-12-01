@@ -23,6 +23,33 @@ if TYPE_CHECKING:
 # Default configuration constants
 DEFAULT_SENTENCE_MARKERS = ".!?:"
 
+# Pattern to detect table-like text
+# Tables start with | and contain | separators
+# This detects: | cell | cell | or |cell|cell|
+TABLE_LINE_PATTERN = re.compile(r"^\s*\|.*\|?\s*$")
+
+
+def _is_table_text(text: str) -> bool:
+    """Check if text looks like markdown table content.
+
+    Tables should not be wrapped because it breaks their syntax.
+    A table is detected if ALL lines match the table pattern
+    (start with | and optionally end with |).
+
+    Args:
+        text: The text to check
+
+    Returns:
+        True if the text appears to be table content
+
+    """
+    lines = text.strip().split("\n")
+    if not lines:
+        return False
+
+    # All lines must look like table rows
+    return all(TABLE_LINE_PATTERN.match(line) for line in lines if line.strip())
+
 
 class ConfigurationError(ValueError):
     """Raised when configuration values are invalid."""
@@ -482,6 +509,7 @@ def wrap_sentences(  # noqa: C901
     - Optionally wrap long lines using --slw-wrap setting
     - Preserve existing formatting for code blocks and special syntax
     - Respect abbreviations and suppression words
+    - Skip wrapping table-like text to preserve table syntax
 
     Note: The _node parameter is required by mdformat's postprocessor
     interface but is not used in this implementation.
@@ -499,6 +527,10 @@ def wrap_sentences(  # noqa: C901
 
     """
     if not should_wrap_sentences(context.options):
+        return text
+
+    # Don't wrap table-like text - it breaks table syntax
+    if _is_table_text(text):
         return text
 
     # Don't wrap if text is empty or just whitespace

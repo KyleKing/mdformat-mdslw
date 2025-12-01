@@ -17,11 +17,7 @@ table with sentences in cells
 .
 | Column 1 | Column 2 |
 | -------- | -------- |
-| This is a sentence.
-Another one here.
-| More text.
-And more.
-|
+| This is a sentence. Another one here. | More text. And more. |
 .
 
 narrow table (one column)
@@ -32,9 +28,7 @@ narrow table (one column)
 .
 | Content |
 | ------- |
-| This is a sentence.
-Another one here.
-|
+| This is a sentence. Another one here. |
 .
 
 wide table (many columns)
@@ -47,13 +41,7 @@ wide table (many columns)
 | Col 1 | Col 2 | Col 3 | Col 4 | Col 5 |
 | ---- | ---- | ---- | ---- | ---- |
 | A | B | C | D | E |
-| This is text.
-More here.
-| And here.
-| One more.
-| Again.
-| Final.
-|
+| This is text. More here. | And here. | One more. | Again. | Final. |
 .
 
 table with alignment
@@ -63,16 +51,8 @@ table with alignment
 | Aligned left. Here's more. | Centered text. Additional. | Aligned right. More stuff. |
 .
 | Left | Center | Right |
-| :--- | :----:
-| ----:
-|
-| Aligned left.
-Here's more.
-| Centered text.
-Additional.
-| Aligned right.
-More stuff.
-|
+| :--- | :----: | ----: |
+| Aligned left. Here's more. | Centered text. Additional. | Aligned right. More stuff. |
 .
 
 compact table (minimal spacing)
@@ -83,9 +63,7 @@ compact table (minimal spacing)
 .
 |A|B|
 |--|--|
-|This is a sentence.
-More text.|Another sentence.
-More.|
+|This is a sentence. More text.|Another sentence. More.|
 .
 
 table with multiline cells
@@ -98,11 +76,7 @@ table with multiline cells
 | Header 1 | Header 2 |
 | -------- | -------- |
 | Cell 1 | Cell 2 |
-| Long text that spans.
-Multiple sentences.
-| Another cell.
-With text.
-|
+| Long text that spans. Multiple sentences. | Another cell. With text. |
 .
 
 table with special characters
@@ -114,11 +88,8 @@ table with special characters
 .
 | Name | Description |
 | ---- | ----------- |
-| Test | Contains "quotes" and 'apostrophes'.
-|
-| Code | Has `backticks`.
-More text.
-|
+| Test | Contains "quotes" and 'apostrophes'. |
+| Code | Has `backticks`. More text. |
 .
 
 table with links in cells
@@ -130,12 +101,8 @@ table with links in cells
 .
 | Item | Link |
 | ---- | ---- |
-| First | [Go here](http://example.com).
-Check it out.
-|
-| Second | [Another link](https://test.org).
-More text.
-|
+| First | [Go here](http://example.com). Check it out. |
+| Second | [Another link](https://test.org). More text. |
 .
 
 table with emphasis in cells
@@ -146,11 +113,7 @@ table with emphasis in cells
 .
 | Bold | Italic |
 | ---- | ------ |
-| This is **bold text**.
-More sentences.
-| This is *italic text*.
-Additional content.
-|
+| This is **bold text**. More sentences. | This is *italic text*. Additional content. |
 .
 
 three row table
@@ -176,12 +139,7 @@ table with mixed content length
 .
 | Short | Medium | Very Long Content Here |
 | ----- | ------ | ---------------------- |
-| A | Sentence.
-Another.
-| This is a very long sentence.
-It has multiple parts.
-And more text.
-|
+| A | Sentence. Another. | This is a very long sentence. It has multiple parts. And more text. |
 .
 
 table with numbers
@@ -193,10 +151,6 @@ table with numbers
 .
 | Name | Value | Description |
 | ---- | ----- | ----------- |
-| Item 1 | 100 | This is the first.
-Second part.
-|
-| Item 2 | 200 | Another description.
-More text.
-|
+| Item 1 | 100 | This is the first. Second part. |
+| Item 2 | 200 | Another description. More text. |
 .

@@ -99,12 +99,14 @@ def update_mdit(mdit: MarkdownIt) -> None:
     modifications are needed. All functionality is implemented via
     postprocessors that run after rendering.
 
+    Note: We don't enable table parsing here because that would require
+    adding full table renderers. Instead, we detect table-like patterns
+    in the postprocessor and skip wrapping them.
+
     Args:
         mdit: The markdown-it parser instance (unused)
 
     """
-    # No markdown-it plugins needed for sentence wrapping
-    # This function is required by mdformat's plugin interface
 
 
 # A mapping from syntax tree node type to a function that renders it.
