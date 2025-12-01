@@ -204,7 +204,7 @@ extras = ["test"]
 [tool.tox.env.type]
 basepython = ["py314"]
 commands = [["mypy", "./mdformat_slw", {default = [], extend = true, replace = "posargs"}]]
-deps = ["mypy>=1.18.2"]
+deps = ["mypy>=1.18.2", "wcwidth-stubs>=0.2.14.0"]
 
 [tool.tox.env_run_base]
 # Validates that commands are set

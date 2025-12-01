@@ -217,25 +217,25 @@ When one of the limited number of characters (`.!?` by default) which serve as e
 1. **Soft wrap mode (default)**: Line doesn't exceed minimum length threshold (40 chars by default)
     - Short sentences stay on the same line for better readability
     - Set `--slw-min-line 0` for aggressive mode (always wrap)
-2. Not in a context where auto-wrapping is possible:
+1. Not in a context where auto-wrapping is possible:
     - Inline code, links, definition lists, etc.
     - Code Blocks
     - Tables
     - HTML Blocks
-3. When the wrapped term is an abbreviation:
+1. When the wrapped term is an abbreviation:
     - Multiple end-of-sentence markers occur (such as `p.m.` or `e.g.`)
     - Identified as an abbreviation from language-specific lists (`Dr.`, `Prof.`, `etc.`, etc.)
     - Matched against custom abbreviations specified via `--slw-abbreviations`
     - Part of user-specified suppression words via `--slw-suppressions`
-4. Abbreviation matching is case-insensitive by default (use `--slw-case-sensitive` to change)
+1. Abbreviation matching is case-insensitive by default (use `--slw-case-sensitive` to change)
 
 ### Algorithm
 
 1. Collapse all consecutive whitespace into a single space. While doing so, preserve both non-breaking spaces and linebreaks that are preceded by non-breaking spaces
-2. Find protected regions (inline code, links) where sentence breaks should not occur
-3. Insert a line break after every character that ends a sentence which complies with the above rules and exceptions
-4. Replace all spaces in link texts by non-breaking spaces (and similar inline content that can't be wrapped)
-5. Wrap lines that are longer than the maximum line width, if set, (88 characters by default) without splitting words or splitting at non-breaking spaces while also keeping indents in tact
+1. Find protected regions (inline code, links) where sentence breaks should not occur
+1. Insert a line break after every character that ends a sentence which complies with the above rules and exceptions
+1. Replace all spaces in link texts by non-breaking spaces (and similar inline content that can't be wrapped)
+1. Wrap lines that are longer than the maximum line width, if set, (88 characters by default) without splitting words or splitting at non-breaking spaces while also keeping indents in tact
 
 ## Acknowledgments
 
