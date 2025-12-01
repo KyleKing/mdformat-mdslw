@@ -26,9 +26,49 @@ def _read_lines_until_delimiter(lines: list[str], start: int) -> tuple[list[str]
     return result, i
 
 
-def _parse_fixture_options(lines: list[str], start: int) -> tuple[dict, int]:  # noqa: C901, PLR0912, PLR0915
+def _parse_single_option(option: str, options: dict) -> None:
+    """Parse a single option in format --name=value or --flag."""
+    if "=" in option:
+        name, value = option.split("=", 1)
+        value = value.strip('"')
+    else:
+        name = option
+        value = None
+
+    match name:
+        case "--no-wrap-sentences":
+            options["no_wrap_sentences"] = True
+        case "--slw-abbreviations-mode":
+            if value:
+                options["abbreviations_mode"] = value
+        case "--slw-abbreviations":
+            if value:
+                options["abbreviations"] = value
+        case "--slw-lang":
+            if value:
+                options["lang"] = value
+        case "--slw-suppressions":
+            if value:
+                options["suppressions"] = value
+        case "--slw-ignores":
+            if value:
+                options["ignores"] = value
+        case "--slw-case-sensitive":
+            options["case_sensitive"] = True
+        case "--slw-wrap":
+            if value:
+                options["slw_wrap"] = int(value)
+        case "--slw-min-line":
+            if value:
+                options["slw_min_line"] = int(value)
+        case "--slw-markers":
+            if value:
+                options["slw_markers"] = value
+
+
+def _parse_fixture_options(lines: list[str], start: int) -> tuple[dict, int]:
     """Parse options from fixture lines starting with '--'."""
-    options = {}
+    options: dict = {}
     i = start
     while i < len(lines):
         line = lines[i].strip()
@@ -36,63 +76,9 @@ def _parse_fixture_options(lines: list[str], start: int) -> tuple[dict, int]:  #
             i += 1
             break
         if line.startswith("--"):
-            # Parse multiple options on the same line
-            parts = []
-            current = []
-            in_quotes = False
-            for char in line:
-                if char == '"':
-                    in_quotes = not in_quotes
-                    current.append(char)
-                elif char == " " and not in_quotes:
-                    if current:
-                        parts.append("".join(current))
-                        current = []
-                else:
-                    current.append(char)
-            if current:
-                parts.append("".join(current))
-
-            # Process each part
-            j = 0
-            while j < len(parts):
-                part = parts[j]
-                if part == "--no-wrap-sentences":
-                    options["no_wrap_sentences"] = True
-                    j += 1
-                elif part == "--slw-abbreviations-mode":
-                    if j + 1 < len(parts):
-                        options["abbreviations_mode"] = parts[j + 1]
-                        j += 2
-                elif part == "--slw-abbreviations":
-                    if j + 1 < len(parts):
-                        value = parts[j + 1].strip('"')
-                        options["abbreviations"] = value
-                        j += 2
-                elif part == "--slw-lang":
-                    if j + 1 < len(parts):
-                        options["lang"] = parts[j + 1].strip('"')
-                        j += 2
-                elif part == "--slw-suppressions":
-                    if j + 1 < len(parts):
-                        options["suppressions"] = parts[j + 1].strip('"')
-                        j += 2
-                elif part == "--slw-ignores":
-                    if j + 1 < len(parts):
-                        options["ignores"] = parts[j + 1].strip('"')
-                        j += 2
-                elif part == "--slw-case-sensitive":
-                    options["case_sensitive"] = True
-                    j += 1
-                elif part == "--slw-wrap":
-                    if j + 1 < len(parts):
-                        options["slw_wrap"] = int(parts[j + 1])
-                        j += 2
-                else:
-                    j += 1
+            _parse_single_option(line, options)
             i += 1
         else:
-            # This is the next title, don't advance i
             break
     return options, i
 

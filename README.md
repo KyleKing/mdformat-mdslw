@@ -8,9 +8,10 @@ This plugin wraps markdown text by inserting line breaks after sentence-ending p
 
 ## Features
 
-- **Automatic sentence wrapping** at configurable punctuation marks (default: `.!?:`)
+- **Automatic sentence wrapping** at configurable punctuation marks (default: `.!?`)
+- **Soft wrapping mode** - only wraps when lines exceed a threshold (default: 40 chars)
 - **Enabled by default** - no flags needed to activate
-- Optional maximum line width enforcement with `--slw-wrap`
+- Optional maximum line width enforcement with `--slw-wrap` (default: 88)
 - Preserves markdown formatting (bold, italic, links, etc.)
 - Handles edge cases: quoted text, parentheses, brackets
 
@@ -25,10 +26,13 @@ Add this package wherever you use `mdformat` and the plugin will be auto-recogni
 mdformat document.md
 
 # With line width enforcement
-mdformat document.md --slw-wrap 80 --wrap=keep
+mdformat document.md --slw-wrap 88 --wrap=keep
 
 # Disable sentence wrapping
 mdformat document.md --no-wrap-sentences
+
+# Aggressive mode (always wrap after sentences)
+mdformat document.md --slw-min-line 0
 ```
 
 #### Options
@@ -36,8 +40,11 @@ mdformat document.md --no-wrap-sentences
 **Basic Options:**
 
 - `--no-wrap-sentences`: Disable sentence wrapping (enabled by default)
-- `--slw-markers TEXT`: Characters that mark sentence endings (default: `.!?:`)
-- `--slw-wrap INTEGER`: Maximum line width for wrapping (default: 80)
+- `--slw-markers TEXT`: Characters that mark sentence endings (default: `.!?`)
+- `--slw-wrap INTEGER`: Maximum line width for wrapping (default: 88)
+- `--slw-min-line INTEGER`: Minimum line length before sentence wrapping (default: 40)
+    - Set to `0` for aggressive mode (always wrap after sentences)
+    - Lines shorter than this threshold won't be wrapped, creating a "soft wrap" effect
 
 **Abbreviation Detection:**
 
@@ -64,11 +71,15 @@ Create a `.mdformat.toml` file in your project root:
 # Disable sentence wrapping (enabled by default)
 no_wrap_sentences = false
 
-# Customize sentence markers
-slw_markers = ".!?:"
+# Customize sentence markers (default: ".!?")
+slw_markers = ".!?"
 
-# Set line width wrapping (default: 80)
-slw_wrap = 80
+# Set line width wrapping (default: 88)
+slw_wrap = 88
+
+# Minimum line length before wrapping (default: 40)
+# Set to 0 for aggressive mode (always wrap)
+slw_min_line = 40
 
 # Configure abbreviation detection
 lang = "en de"  # Use English and German abbreviations
@@ -129,7 +140,14 @@ print(result)
 result = mdformat.text(
     text,
     extensions={"slw"},
-    options={"slw_wrap": 80}
+    options={"slw_wrap": 88}
+)
+
+# Aggressive mode (always wrap)
+result = mdformat.text(
+    text,
+    extensions={"slw"},
+    options={"slw_min_line": 0}
 )
 
 # Disable sentence wrapping
@@ -194,26 +212,30 @@ Done!
 
 ### Wrapping Rules
 
-When one of the limited number of characters (`.!?:` by default) which serve as end-of-sentence markers occur alone, mdformat-slw will wrap **except** when:
+When one of the limited number of characters (`.!?` by default) which serve as end-of-sentence markers occur alone, mdformat-slw will wrap **except** when:
 
-1. Not in a context where auto-wrapping is possible:
+1. **Soft wrap mode (default)**: Line doesn't exceed minimum length threshold (40 chars by default)
+    - Short sentences stay on the same line for better readability
+    - Set `--slw-min-line 0` for aggressive mode (always wrap)
+2. Not in a context where auto-wrapping is possible:
     - Inline code, links, definition lists, etc.
     - Code Blocks
     - Tables
     - HTML Blocks
-1. When the wrapped term is an abbreviation:
+3. When the wrapped term is an abbreviation:
     - Multiple end-of-sentence markers occur (such as `p.m.` or `e.g.`)
     - Identified as an abbreviation from language-specific lists (`Dr.`, `Prof.`, `etc.`, etc.)
     - Matched against custom abbreviations specified via `--slw-abbreviations`
     - Part of user-specified suppression words via `--slw-suppressions`
-1. Abbreviation matching is case-insensitive by default (use `--slw-case-sensitive` to change)
+4. Abbreviation matching is case-insensitive by default (use `--slw-case-sensitive` to change)
 
 ### Algorithm
 
-1. Insert a line break after every character that ends a sentence which complies with the above rules and exceptions
 1. Collapse all consecutive whitespace into a single space. While doing so, preserve both non-breaking spaces and linebreaks that are preceded by non-breaking spaces
-1. Before line wrapping, replace all spaces in link texts by non-breaking spaces (and similar inline content that can't be wrapped)
-1. Wrap lines that are longer than the maximum line width, if set, (80 characters by default) without splitting words or splitting at non-breaking spaces while also keeping indents in tact.
+2. Find protected regions (inline code, links) where sentence breaks should not occur
+3. Insert a line break after every character that ends a sentence which complies with the above rules and exceptions
+4. Replace all spaces in link texts by non-breaking spaces (and similar inline content that can't be wrapped)
+5. Wrap lines that are longer than the maximum line width, if set, (88 characters by default) without splitting words or splitting at non-breaking spaces while also keeping indents in tact
 
 ## Acknowledgments
 

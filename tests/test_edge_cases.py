@@ -5,8 +5,11 @@ from __future__ import annotations
 import pytest
 
 from mdformat_slw._sentence_wrapper import (
+    DEFAULT_MIN_LINE_LENGTH,
     DEFAULT_SENTENCE_MARKERS,
+    DEFAULT_WRAP_WIDTH,
     ConfigurationError,
+    get_min_line_length,
     get_sentence_markers,
     get_slw_wrap_width,
 )
@@ -30,7 +33,7 @@ def test_slw_wrap_width_not_set() -> None:
     """Test get_slw_wrap_width when --slw-wrap is not set."""
     options = {"mdformat": {}}
     result = get_slw_wrap_width(options)
-    assert result == 80  # noqa: PLR2004  # Default is now 80 per guidance.md
+    assert result == DEFAULT_WRAP_WIDTH  # Default is 88
 
 
 def test_slw_wrap_width_zero() -> None:
@@ -73,3 +76,24 @@ def test_special_characters_in_sentence_markers() -> None:
     options = {"mdformat": {"slw_markers": ".!?*+[]"}}
     result = get_sentence_markers(options)
     assert result == ".!?*+[]"
+
+
+def test_min_line_length_not_set() -> None:
+    """Test get_min_line_length when --slw-min-line is not set."""
+    options = {"mdformat": {}}
+    result = get_min_line_length(options)
+    assert result == DEFAULT_MIN_LINE_LENGTH  # Default is 40
+
+
+def test_min_line_length_zero() -> None:
+    """Test get_min_line_length when --slw-min-line is 0 (aggressive)."""
+    options = {"mdformat": {"plugin": {"slw": {"slw_min_line": 0}}}}
+    result = get_min_line_length(options)
+    assert result == 0
+
+
+def test_min_line_length_custom() -> None:
+    """Test get_min_line_length with custom value."""
+    options = {"mdformat": {"slw_min_line": 60}}
+    result = get_min_line_length(options)
+    assert result == 60  # noqa: PLR2004
