@@ -15,6 +15,7 @@ classifiers = [
 dependencies = [
   "mdformat >= 0.7.19",
   "mdit-py-plugins >= 0.4.1",
+  "wcwidth >= 0.2.0",
 ]
 description = "An mdformat plugin for semantic line wrapping (like mdslw)"
 keywords = ["markdown", "markdown-it", "mdformat", "mdformat_plugin_template"]

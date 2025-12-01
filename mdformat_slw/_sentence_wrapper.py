@@ -7,6 +7,8 @@ import logging
 import re
 from typing import TYPE_CHECKING
 
+import wcwidth
+
 from ._helpers import get_conf
 from ._language_data import DEFAULT_LANG, LANG_SUPPRESSIONS
 
@@ -21,12 +23,32 @@ if TYPE_CHECKING:
     ContextOptions = Mapping[str, Any]
 
 # Default configuration constants
-DEFAULT_SENTENCE_MARKERS = ".!?:"
+DEFAULT_SENTENCE_MARKERS = ".!?"
+DEFAULT_MIN_LINE_LENGTH = 40
+DEFAULT_WRAP_WIDTH = 88
 
 # Pattern to detect table-like text
 # Tables start with | and contain | separators
 # This detects: | cell | cell | or |cell|cell|
 TABLE_LINE_PATTERN = re.compile(r"^\s*\|.*\|?\s*$")
+
+
+def _display_width(text: str) -> int:
+    """Calculate display width of text in terminal columns.
+
+    Handles wide characters (CJK, emoji) that take 2 columns,
+    zero-width characters (combining marks), and regular ASCII.
+
+    Args:
+        text: Text to measure
+
+    Returns:
+        Display width in columns, or len(text) as fallback for control chars
+
+    """
+    width = wcwidth.wcswidth(text)
+    # wcswidth returns -1 if text contains non-printable control characters
+    return width if width >= 0 else len(text)
 
 
 def _is_table_text(text: str) -> bool:
@@ -139,11 +161,28 @@ def get_slw_wrap_width(options: ContextOptions) -> int:
         options: Configuration options from mdformat context
 
     Returns:
-        Maximum line width in characters, or 0 to disable wrapping (default: 80)
+        Maximum line width in characters, or 0 to disable wrapping (default: 88)
 
     """
     wrap_width = get_conf(options, "slw_wrap")
-    return int(wrap_width) if wrap_width is not None else 80
+    return int(wrap_width) if wrap_width is not None else DEFAULT_WRAP_WIDTH
+
+
+def get_min_line_length(options: ContextOptions) -> int:
+    """Get minimum line length before sentence wrapping applies.
+
+    This implements "soft wrap" behavior - only insert a sentence break
+    if the current line length exceeds this threshold.
+
+    Args:
+        options: Configuration options from mdformat context
+
+    Returns:
+        Minimum line length in characters before wrapping (default: 40, 0=always wrap)
+
+    """
+    min_line = get_conf(options, "slw_min_line")
+    return int(min_line) if min_line is not None else DEFAULT_MIN_LINE_LENGTH
 
 
 def _get_suppression_words(options: ContextOptions) -> set[str]:
@@ -230,7 +269,7 @@ def _wrap_long_line(line: str, max_width: int) -> list[str]:
     content = line[len(indent) :]
 
     # Don't wrap if line fits within max_width
-    if len(line) <= max_width:
+    if _display_width(line) <= max_width:
         return [line]
 
     # Split on regular spaces but NOT on non-breaking spaces (U+00A0)
@@ -246,11 +285,11 @@ def _wrap_long_line(line: str, max_width: int) -> list[str]:
 
     wrapped_lines = []
     current_line: list[str] = []
-    # Start with indent length
-    current_length = len(indent)
+    # Start with indent display width
+    current_length = _display_width(indent)
 
     for word in words:
-        word_len = len(word)
+        word_len = _display_width(word)
         # Calculate space needed: word length + 1 for space (if not first word)
         space_needed = word_len + (1 if current_line else 0)
 
@@ -258,8 +297,8 @@ def _wrap_long_line(line: str, max_width: int) -> list[str]:
             # Current line would exceed max_width, flush it with indent
             wrapped_lines.append(indent + " ".join(current_line))
             current_line = [word]
-            # Reset length to indent + word
-            current_length = len(indent) + word_len
+            # Reset length to indent display width + word display width
+            current_length = _display_width(indent) + word_len
         else:
             # Add word to current line
             current_line.append(word)
@@ -555,6 +594,7 @@ def wrap_sentences(  # noqa: C901
 
     sentence_markers = get_sentence_markers(context.options)
     wrap_width = get_slw_wrap_width(context.options)
+    min_line_length = get_min_line_length(context.options)
     suppression_words = _get_suppression_words(context.options)
     case_sensitive = get_conf(context.options, "case_sensitive")
 
@@ -563,46 +603,67 @@ def wrap_sentences(  # noqa: C901
     # Match: marker + optional closing chars + whitespace
     boundary_pattern = re.compile(r"([" + marker_class + r"])(\s*[\"'\)\]\}]*)\s+")
 
-    def _replace_with_newline(match: re.Match[str]) -> str:
-        """Replace sentence ending with newline, checking suppressions and protection."""
-        marker = match.group(1)  # Sentence marker
-        closing = match.group(2)  # Closing chars
+    def _is_suppressed(text_before: str) -> bool:
+        """Check if text ends with a suppression word."""
+        if not suppression_words:
+            return False
+        for supp_word in suppression_words:
+            check_pattern = re.escape(supp_word)
+            pattern_to_check = r"\b" + check_pattern.replace(r"\.", r"\.") + r"$"
+            if case_sensitive:
+                if re.search(pattern_to_check, text_before):
+                    return True
+            elif re.search(pattern_to_check, text_before, re.IGNORECASE):
+                return True
+        return False
 
-        # Get position of the sentence marker
+    # Apply sentence breaks with min_line_length threshold
+    # Build result by iterating through matches to track line position
+    result_parts: list[str] = []
+    last_end = 0
+    current_line_start = 0  # Track where current line started in result
+
+    for match in boundary_pattern.finditer(text):
+        marker = match.group(1)
+        closing = match.group(2)
         marker_pos = match.start() + match.group(0).index(marker)
 
-        # Check if marker is in a protected region (inline code, link)
+        # Add text before this match
+        result_parts.append(text[last_end : match.start()])
+
+        # Check if marker is in a protected region
         if _is_position_protected(marker_pos, protected_regions):
-            return match.group(0)
+            result_parts.append(match.group(0))
+            last_end = match.end()
+            continue
 
-        # Get text before this match to check for suppression words
-        start_pos = match.start()
-        text_before = text[:start_pos]
+        # Check suppression words
+        text_before = text[: match.start()]
+        if _is_suppressed(text_before):
+            result_parts.append(match.group(0))
+            last_end = match.end()
+            continue
 
-        # Check if any suppression word appears at the end of text_before
-        if suppression_words:
-            for supp_word in suppression_words:
-                # Build pattern to check if suppression word appears before marker
-                # Handle both "word." and "word" cases
-                if case_sensitive:
-                    check_pattern = re.escape(supp_word)
-                else:
-                    check_pattern = re.escape(supp_word)
+        # Calculate current line display width
+        current_result = "".join(result_parts)
+        current_line_text = current_result[current_line_start:]
+        line_length = _display_width(current_line_text) + _display_width(marker) + _display_width(closing)
 
-                # Check if text_before ends with this suppression word
-                # Allow for period-separated abbreviations like "p.m"
-                pattern_to_check = r"\b" + check_pattern.replace(r"\.", r"\.") + r"$"
-                if case_sensitive:
-                    if re.search(pattern_to_check, text_before):
-                        return match.group(0)
-                elif re.search(pattern_to_check, text_before, re.IGNORECASE):
-                    return match.group(0)
+        # Only wrap if line exceeds min_line_length (soft wrap)
+        if min_line_length > 0 and line_length < min_line_length:
+            result_parts.append(match.group(0))
+            last_end = match.end()
+            continue
 
-        # No suppression match - wrap with newline
-        return f"{marker}{closing}\n"
+        # Insert sentence break
+        result_parts.append(f"{marker}{closing}\n")
+        last_end = match.end()
+        # Update line start position for next iteration
+        current_line_start = len("".join(result_parts))
 
-    # Apply sentence breaks
-    wrapped = boundary_pattern.sub(_replace_with_newline, text)
+    # Add remaining text
+    result_parts.append(text[last_end:])
+    wrapped = "".join(result_parts)
 
     # Step 3: Replace spaces in link text with non-breaking spaces (per guidance.md)
     # This prevents line wrapping from breaking within link text
