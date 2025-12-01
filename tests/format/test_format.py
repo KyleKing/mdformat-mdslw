@@ -161,6 +161,19 @@ fixtures = flatten(
             "indentation.md",
             "inline_elements.md",
             "tables.md",
+            # Supported language fixtures
+            "lang_es.md",
+            "lang_de.md",
+            "lang_fr.md",
+            "lang_it.md",
+            # CJK language fixtures (demonstrate limitations)
+            "lang_zh.md",
+            "lang_ja.md",
+            "lang_ko.md",
+            # Unsupported language fixtures
+            "lang_pt.md",
+            "lang_ru.md",
+            "lang_ar.md",
         )
     ],
 )
